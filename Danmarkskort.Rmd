@@ -1,0 +1,32 @@
+---
+title: "Danmarkskort"
+author: "Andreas"
+date: "4/3/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(sf)
+library(rgdal)
+```
+
+# Kort
+
+```{r}
+url = "https://api.dataforsyningen.dk/landsdele?format=geojson"
+geofile = tempfile()
+download.file(url, geofile)
+
+geodata <- rgdal::readOGR(geofile)
+ggplotdata = sf::st_as_sf(geodata)
+ggplotdata$navn = c("Byen København", "Københavns omegn", "Nordsjælland", "Bornholm", "Østsjælland", "Vest- og Sydsjælland", "Fyn", "Sydjylland", "Vestjylland", "Østjylland", "Nordjylland")
+
+
+
+ggplot(ggplotdata, aes(fill = navn)) +
+  geom_sf() +
+  theme_minimal()
+
+ggplotdata$navn
+```

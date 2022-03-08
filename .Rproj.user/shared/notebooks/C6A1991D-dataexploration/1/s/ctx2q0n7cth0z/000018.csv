@@ -1,0 +1,2 @@
+"0","FarMorUddGnsDage <- full_join(FarUddGnsDage, MorUddGnsDage, by = c(""Landsdel"", ""Uddannelse"", ""År""), suffix = c(""Far"", ""Mor""))"
+"0","FarMorUddGnsDage"

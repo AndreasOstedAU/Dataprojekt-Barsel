@@ -1,0 +1,8 @@
+"0","UDD_LANDSDELE <- read.csv(file=""udd_landsdele_data.csv"", sep="";"", header=TRUE)"
+"0","dim(UDD_LANDSDELE)"
+"1","[1]"
+"1"," 11"
+"1","  8"
+"1","
+"
+"0","head(UDD_LANDSDELE)"

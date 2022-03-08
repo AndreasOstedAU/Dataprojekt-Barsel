@@ -1,0 +1,11 @@
+"0","TEMP_data <- INDBYGGERTAL_LANDSDELE %>% full_join(BARSELSDAGE_LANDSDELE)"
+"1","[1m[33mError[39m in [38;5;250m[38;5;251m[48;5;235m`standardise_join_by()`[49m[38;5;250m[39m:[22m
+[33m![39m `by` must be supplied when `x` and `y` have no common variables.
+[34mi[39m use by = character()` to perform a cross-join.
+Backtrace:
+[90m 1. [39mINDBYGGERTAL_LANDSDELE %>% full_join(BARSELSDAGE_LANDSDELE)
+[90m 3. [39m[1mdplyr[22m:::full_join.data.frame(., BARSELSDAGE_LANDSDELE)
+[90m 4. [39mdplyr:::join_mutate(...)
+[90m 5. [39mdplyr:::join_cols(...)
+[90m 6. [39mdplyr:::standardise_join_by(by, x_names = x_names, y_names = y_names)
+"

@@ -1,0 +1,3 @@
+"0","AntalUddLandsDeleMænd <- read_xlsx(""Data/AntalUddLandsdeleMænd.xlsx"")"
+"0","AntalUddLandsDeleMænd_long <- AntalUddLandsDeleMænd %>% pivot_longer(c(3:7), names_to = ""År"", values_to = ""Antal_med_udd."")"
+"0","AntalUddLandsDeleMænd_long"

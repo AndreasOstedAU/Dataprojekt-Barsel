@@ -1,0 +1,2 @@
+"0","Total_mænd <- full_join(FarUddTotalDage, AntalUddLandsDeleMænd_long, by = c(""Uddannelse"", ""Landsdel"", ""År""))"
+"0","Total_mænd"
