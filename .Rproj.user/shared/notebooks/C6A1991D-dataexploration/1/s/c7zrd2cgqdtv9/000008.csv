@@ -1,5 +1,0 @@
-"0","OECD_long_filtered %>% ggplot +"
-"0","  geom_bar(mapping = aes(x = Year, y = Weeks, fill = Country), stat = 'Identity', position = 'dodge')"
-"2","Warning:"
-"2"," Removed 7 rows containing missing values (geom_bar).
-"

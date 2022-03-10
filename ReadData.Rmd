@@ -43,9 +43,10 @@ metadata$variables$values[[6]]
 
 df <- sdk_retrieve_data(table_id = metadata$id, lang = "da") # en=english, da = danish
 df
-
-write_rds(x = df, file = "barsel04.rds")
-
 }
+
+
+df1<-df[df$DAGPENGERET=="Både mor og far er berettigede til barselsdagpenge",]
+write_rds(x = df1, file = "barsel04fil.rds")
 
 ```

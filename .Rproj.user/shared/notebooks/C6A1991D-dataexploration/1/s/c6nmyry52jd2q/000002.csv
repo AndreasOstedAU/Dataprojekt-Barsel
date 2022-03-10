@@ -1,3 +1,0 @@
-"0","GnsDageMorBrancher <- read_xlsx(""Data/GnsDageMorBrancherStatus.xlsx"", na = '..')"
-"0","GnsDageMorBrancher_long <- GnsDageMorBrancher %>% pivot_longer(c(3:7), names_to = ""År"", values_to = ""Gns._Dage"")"
-"0","GnsDageMorBrancher_long"

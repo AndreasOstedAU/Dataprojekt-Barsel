@@ -1,8 +1,0 @@
-"0","BARSELSDAGE_LANDSDELE <- read.csv(file=""barseldage_landsdel_csvdata2.csv"", sep="";"", header=TRUE)"
-"0","dim(BARSELSDAGE_LANDSDELE)"
-"1","[1]"
-"1"," 11"
-"1","  3"
-"1","
-"
-"0","head(BARSELSDAGE_LANDSDELE)"

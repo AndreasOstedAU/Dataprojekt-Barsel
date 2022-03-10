@@ -1,7 +1,0 @@
-"0","FarMor_long <- FarMorUddGnsDage %>% "
-"0","  rename(Far = DageFar,"
-"0","         Mor = DageMor) %>% "
-"0","  pivot_longer(c(Far, Mor), "
-"0","               names_to = ""Forælder"", "
-"0","               values_to = ""Dage"")"
-"0","FarMor_long"

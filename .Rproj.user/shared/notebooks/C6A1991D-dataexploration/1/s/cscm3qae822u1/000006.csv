@@ -1,2 +1,0 @@
-"0","Dage_per_kvinde <- Total_kvinder %>% mutate(Dage_per_person = Antal_dage_total/Antal_med_udd.)"
-"0","Dage_per_kvinde"

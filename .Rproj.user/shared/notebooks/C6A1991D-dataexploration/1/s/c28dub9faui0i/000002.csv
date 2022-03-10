@@ -1,5 +1,0 @@
-"0","UddLandsdele <- read_xlsx(""Data/LandsdeleUdd.xlsx"")"
-"0",""
-"0",""
-"0","Pivoted_Udd <- UddLandsdele %>% pivot_longer(c('2015', '2016', '2017', '2018', '2019'), names_to = 'Year', values_to = 'count')"
-"0","Pivoted_Dage <- DageLandsdele %>% pivot_longer(c('2015', '2016', '2017', '2018', '2019'), names_to = 'Year', values_to = 'Days') "
