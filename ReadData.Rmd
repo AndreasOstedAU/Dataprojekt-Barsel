@@ -1,0 +1,51 @@
+---
+output:
+  html_document:
+        theme: readable
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r}
+
+library(tidyverse)
+
+```
+
+
+# StatsDK pakken
+
+# Get data from statsDK and save to file
+
+```{r}
+
+update <- TRUE
+
+if(update) {
+  
+#install.packages("devtools")
+#devtools::install_github("mikkelkrogsholm/statsDK")
+
+library(statsDK)
+
+tables <- statsDK::sdk_retrieve_tables()
+dplyr::glimpse(tables)
+
+tables %>% filter(str_detect(string = text, pattern = "leave"))
+
+metadata  <- statsDK::sdk_retrieve_metadata("BARSEL04")
+
+metadata$id
+metadata$variables %>% as_tibble()
+
+metadata$variables$values[[5]]
+metadata$variables$values[[6]]
+
+df <- sdk_retrieve_data(table_id = metadata$id, lang = "da") # en=english, da = danish
+df
+
+write_rds(x = df, file = "barsel04.rds")
+
+}
+
+```
