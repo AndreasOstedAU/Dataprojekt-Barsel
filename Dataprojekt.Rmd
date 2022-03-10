@@ -1,0 +1,140 @@
+---
+title: "Dataprojekt"
+author: "Nicoline Sørensen"
+date: "3/3/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Loading data receiver package:
+```{r}
+library(statsDK)
+library(tidyverse)
+```
+
+## DATA FOR UDDANNELSE I FORSKELLIGE LANDSDELE + INDBYGGERTAL I DENNE GRUPPE
+
+Data kommer fra HFUDD11, som har data på folks uddannelsesniveau og kun inkluderer folk i alderen 15-69 år. Dette er dog okay, da vi kun arbejder med folk i den arbejdsdygtige alder (og dermed også fødedygtige). Data er inddelt i uddannelsesgrupper, men for at få det til at passe til uddannelsesgrupperne i BARSEL04 er nedenstående sammenlægning brugt:
+
+Ingen ungdomsuddannelse = (H10 Grundskole)
+Ungdomsuddannelse = (H20 Gymnasial uddannelse + H30 Erhvervsuddannelse + H35 Adgangsgivende uddannelsesforløb)
+Kort videregående = (H40 KVU)
+Mellemlang videregående = (H50 MVU + H60 BACH)
+Lang videregående = (H70 LVU + H80 Ph.d. og forsker)
+
+Uoolyst er ikke medtaget i BARSEL04, men fremgår her for at fremskaffe det korrekte antal indbyggere i denne aldersgruppe for hver landsdel.
+
+```{r}
+udd_landsdele_2019 <- read_excel(path='uddannelsesgrupper_landsdele_2019.xlsx')
+
+udd_landsdele_2019 <- cbind(udd_landsdele_2019, Antal_indbyggere = rowSums(udd_landsdele_2019[,2:11]))
+
+head(udd_landsdele_2019,11)
+```
+
+```{r}
+udd_landsdele_2019 <- udd_landsdele_2019 %>% mutate(Ingen_ungdomsuddannelse=`H10 Grundskole`, Ungdomsuddannelse=`H20 Gymnasiale uddannelser`+`H30 Erhvervsfaglige uddannelser`+`H35 Adgangsgivende uddannelsesforløb`, Kort_videregående=`H40 Korte videregående uddannelser, KVU`, Mellemlang_videregående = `H50 Mellemlange videregående uddannelser, MVU` + `H60 Bacheloruddannelser, BACH`, Lang_videregående=`H70 Lange videregående uddannelser, LVU` + `H80 Ph.d. og forskeruddannelser`, Uoplyst=`H90 Uoplyst mv.`)
+
+udd_landsdele_2019 <- udd_landsdele_2019 %>% select(Landsdel, Ingen_ungdomsuddannelse, Ungdomsuddannelse, Kort_videregående, Mellemlang_videregående, Lang_videregående, Uoplyst, Antal_indbyggere)
+
+head(udd_landsdele_2019,11)
+```
+Nedenfor udregnes proportionerne af hver uddannelsesgruppe i landsdelene, og gemmes i en ny tabel.
+
+```{r}
+udd_landsdele_prop_2019 <- udd_landsdele_2019 %>% mutate(ProportionIngen=Ingen_ungdomsuddannelse/Antal_indbyggere, ProportionUngdoms=Ungdomsuddannelse/Antal_indbyggere, ProportionKort=Kort_videregående/Antal_indbyggere, ProportionMellem= Mellemlang_videregående/Antal_indbyggere, ProportionLang=Lang_videregående/Antal_indbyggere, ProportionUoplyst=Uoplyst/Antal_indbyggere) %>% select(Landsdel, ProportionIngen, ProportionUngdoms, ProportionKort, ProportionMellem, ProportionLang, ProportionUoplyst)
+
+head(udd_landsdele_prop_2019,11)
+```
+```{r}
+udd_landsdele_prop_2019 %>% rename(Uoplyst=ProportionUoplyst, Ungdomsuddannelse=ProportionUngdoms, KortVidere=ProportionKort, MellemLang=ProportionMellem, Lang = ProportionLang, Ingen=ProportionIngen) %>% pivot_longer(!Landsdel, names_to = "Uddannelse", values_to = "Proportion") %>% ggplot(mapping = aes(x = Proportion, y=Uddannelse)) + geom_bar(stat='identity', width=0.8, aes(fill=Landsdel)) + facet_wrap(~Landsdel, ncol = 3, nrow = 6) + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) + labs(title = "Uddannelse i landsdele") + theme(axis.text.y = element_text(angle = 0, vjust = 1, hjust=1)) + 
+   theme(text = element_text(size = 8.5), element_line(size = 0.2))
+```
+
+Nedenfor udregnes et "gennemsnit" over uddannelsesniveu i hver landsdel. 1 er ingen, 2 er ungdom, ..., 5 er lang, og så regnes det vægtede gennemsnit. Giver ikke så meget mening, men giver et overblik over fordelingen af uddannelsesniveau mellem landsdelene.
+
+```{r}
+udd_gns_2019 <- udd_landsdele_prop_2019 %>% mutate(gns=ProportionIngen*1+ProportionKort*2+ProportionKort*3+ProportionMellem*4+ProportionLang*5) %>% select(Landsdel, gns)
+
+udd_gns_2019 <- udd_gns_2019[order(-udd_gns_2019$gns),]
+
+head(udd_gns_2019,11)
+```
+```{r}
+udd_gns_2019 %>% ggplot(mapping = aes(x = Landsdel, y=gns)) + geom_bar(stat='identity', width=0.8, fill='hotpink') + labs(title = "Vægtet gennemsnit af uddannelse i landsdele") + scale_x_discrete(labels = function(x) str_wrap(x, width = 8)) + theme(text = element_text(size = 9), element_line(size = 0.2)) + ylab("Vægtet gennemsnit")
+```
+
+### DATA FOR ANTAL MÆND OG KVINDER I LANDSDELE 
+
+Disse data er også udtrukket fra HFUDD11.
+
+```{r}
+køn_landsdele_2019 <- read_excel(path='mændkvinder_landsdele_2019.xlsx')
+
+køn_landsdele_2019 <- køn_landsdele_2019 %>% mutate(PropMænd=Mænd/(Mænd+Kvinder), PropKvinder=Kvinder/(Mænd+Kvinder))
+
+head(køn_landsdele_2019,11)
+```
+```{r}
+køn_landsdele_2019 %>% select(Landsdel, PropMænd, PropKvinder) %>% rename(Mænd=PropMænd, Kvinder=PropKvinder) %>% pivot_longer(!Landsdel, names_to = "Køn", values_to = "Proportion") %>% ggplot(mapping = aes(x = Landsdel, y=Proportion)) + geom_bar(stat='identity', width=0.8, aes(fill=Køn), position="dodge") + labs(title = "Fordeling af køn i landsdele") + scale_x_discrete(labels = function(x) str_wrap(x, width = 8)) + theme(text = element_text(size = 9), element_line(size = 0.2))
+```
+
+### DATA FOR ALDER FOR FØRSTEGANGSFORÆLDRE I LANDSDELE
+
+Der findes ikke data på landsdele, men på kommuner, så der skal lægges nogle rækker sammen. Data kommer fra FOD111.
+```{r}
+fødealder_kommune_2019 <- read_excel(path='kommune_alderbørn_2019.xlsx')
+
+fødealder_kommune_2019
+```
+Nedenfor summeres rækkerne som angivet her: https://da.wikipedia.org/wiki/Danmarks_landsdele, og kommuner med ingen fødte fjernes, da de står til 0 og derved ødelægger gennemsnittet.
+
+```{r}
+kommune_landsdel <- read_excel(path='kommuner_landsdele.xlsx')
+
+fødealder_landsdel_2019 <- fødealder_kommune_2019 %>% full_join(kommune_landsdel) %>% filter(`Gennemsnitsalder for førstegangsfødende kvinder`!= 0.0, `Gennemsnitsalder for samtlige fødende kvinder` != 0.0, `Gennemsnitsalder for førstegangs fædre` != 0, `Gennemsnitsalder for fædre til nyfødte` != 0)
+
+fødealder_landsdel_2019 <- fødealder_landsdel_2019 %>% group_by(Landsdel) %>% summarise(gns_førstefødte_mor=mean(`Gennemsnitsalder for førstegangsfødende kvinder`), gns_alle_mor=mean(`Gennemsnitsalder for samtlige fødende kvinder`), gns_første_far=mean(`Gennemsnitsalder for førstegangs fædre`), gns_alle_far=mean(`Gennemsnitsalder for fædre til nyfødte`), Antal_kommuner=n())
+
+head(fødealder_landsdel_2019,11)
+```
+
+```{r}
+fødealder_landsdel_2019 %>% select(Landsdel, gns_alle_mor, gns_førstefødte_mor, gns_første_far, gns_alle_far) %>% pivot_longer(!Landsdel, names_to = "Forældertype", values_to = "Gennemsnitsalder") %>% ggplot(mapping = aes(x = Landsdel, y=Gennemsnitsalder)) + geom_bar(stat='identity', width=0.8, aes(fill=Forældertype), position="dodge") + labs(title = "Gennemsnitalder for forældertyper i landsdele") + scale_x_discrete(labels = function(x) str_wrap(x, width = 8)) + theme(text = element_text(size = 7.5), element_line(size = 0.2)) + scale_fill_manual(values=c("royalblue4", "violetred1","royalblue2","palevioletred1"))
+``` 
+
+### DATA FOR INDKOMSTNIVEAU I LANDSDELE
+
+Hentet fra INDKP105, inkluderer 15-74 år. 
+
+```{r}
+gnsindkomst_landsdele_2019 <- read_excel(path='gns_indkomst_landsdele_2019.xlsx')
+
+gnsindkomst_landsdele_2019 <- gnsindkomst_landsdele_2019[order(-gnsindkomst_landsdele_2019$Gns_indkomst),]
+
+head(gnsindkomst_landsdele_2019,11)
+```
+```{r}
+options(scipen=5) 
+gnsindkomst_landsdele_2019 %>% ggplot(mapping = aes(x = Landsdel, y=Gns_indkomst)) + geom_bar(stat='identity', width=0.8, fill='hotpink') + labs(title = "Gennemsnitlig indkomst i landsdele") + scale_x_discrete(labels = function(x) str_wrap(x, width = 8)) + theme(text = element_text(size = 9), element_line(size = 0.2)) + ylab("Gennemnitsindkomst")
+```
+
+Også henter fra INDPK105, men her er det opdelt i indkomstgrupperne for at få overblik over fordelingen.
+
+```{r}
+indkomstgrupper_landsdele_2019 <- read_excel(path='indkomstgrupper_landsdele_2019.xlsx')
+
+indkomstgrupper_landsdele_2019 <- cbind(indkomstgrupper_landsdele_2019, Antal = rowSums(indkomstgrupper_landsdele_2019[,2:17]))
+
+indkomstgrupper_landsdele_2019 <- indkomstgrupper_landsdele_2019 %>% mutate(`Under 25.000 kr.`=`Under 25.000 kr.`/Antal, `25.000 - 49.999 kr.`=`25.000 - 49.999 kr.`/Antal, `50.000 - 74.999 kr.`=`50.000 - 74.999 kr.`/Antal, `75.000 - 99.999 kr.`=`75.000 - 99.999 kr.`/Antal, `100.000 - 124.999 kr.`=`100.000 - 124.999 kr.`/Antal, `125.000 - 149.999 kr.`=`125.000 - 149.999 kr.`/Antal, `150.000 - 174.999 kr.`=`150.000 - 174.999 kr.`/Antal,`175.000 - 199.999 kr.`=`175.000 - 199.999 kr.`/Antal, `200.000 - 224.999 kr.`=`200.000 - 224.999 kr.`/Antal, `225.000 - 249.999 kr.`=`225.000 - 249.999 kr.`/Antal, `250.000 - 299.999 kr.`=`250.000 - 299.999 kr.`/Antal, `300.000 - 349.999 kr.`=`300.000 - 349.999 kr.`/Antal, `350.000 - 399.999 kr.`=`350.000 - 399.999 kr.`/Antal, `400.000 - 449.999 kr.`=`400.000 - 449.999 kr.`/Antal, `450.000 - 499.999 kr.`=`450.000 - 499.999 kr.`/Antal,`500.000 kr. og derover`=`500.000 kr. og derover`/Antal)
+
+head(indkomstgrupper_landsdele_2019,11)
+```
+```{r}
+indkomstgrupper_landsdele_2019 %>% select(!Antal) %>% pivot_longer(!Landsdel, names_to = "Indkomstgruppe", values_to = "Proportion") %>% ggplot(mapping = aes(x = Proportion, y=Indkomstgruppe)) + geom_bar(stat='identity', width=0.8, aes(fill=Landsdel)) + facet_wrap(~Landsdel, ncol = 3, nrow = 6) + theme(axis.text.x = element_text(angle = 0, vjust = 0.5, hjust=1)) + labs(title = "Fordeling af indkomstgrupper i landsdele") + theme(axis.text.y = element_text(angle = 0, vjust = 1, hjust=1)) + 
+   theme(text = element_text(size = 5), element_line(size = 0.2))
+```
+
