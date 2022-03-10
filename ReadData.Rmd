@@ -41,6 +41,7 @@ metadata$variables %>% as_tibble()
 metadata$variables$values[[5]]
 metadata$variables$values[[6]]
 
+#BARSEL04
 df <- sdk_retrieve_data(table_id = metadata$id, lang = "da") # en=english, da = danish
 df
 }
@@ -49,4 +50,23 @@ df
 df1<-df[df$DAGPENGERET=="Både mor og far er berettigede til barselsdagpenge",]
 write_rds(x = df1, file = "barsel04fil.rds")
 
+
+#BARSEL11
+barsel11_meta <- sdk_retrieve_metadata("BARSEL11")
+var_barsel11 <- sdk_get_variables(barsel11_meta)
+View(var_barsel11)
+
+barsel11_df <- sdk_retrieve_data("BARSEL11", lang = "da")
+unique(barsel11_df$BERET) #Arbejder kun med "Både mor og far er berettigede til barselsdagpenge"
+barsel11_shorter <- barsel11_df %>% filter(BERET %in% "Både mor og far er berettigede til barselsdagpenge")
+write_rds(x = barsel11_shorter, file = "barsel11.rds")
+
+
+#HFUDD11
+hfudd11_meta <- sdk_retrieve_metadata("HFUDD11")
+var_hfudd11 <- sdk_get_variables(hfudd11_meta)
+View(var_hfudd11)
+glimpse(hfudd11_meta)
+
+#HVORDAN SKAL MAN VÆLGE LANDSDELE??
 ```
