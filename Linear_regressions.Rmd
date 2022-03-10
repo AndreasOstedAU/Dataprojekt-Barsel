@@ -72,3 +72,68 @@ summary(LM_no_interaction_mor)
 anova(LM_interaction_mor, LM_no_interaction_mor)
 ```
 
+
+# BARSEL 11 - modeller for far og mors gennemsnitlige barsesldage efter social status, branche og år
+
+## Far data
+```{r}
+barsel11_big <- read_rds("Data/barsel11.rds")
+barsel11_big
+```
+
+```{r}
+unique(barsel11_big$BRANCHE)
+```
+
+```{r}
+barsel11_far <- barsel11_big %>% filter(ENHED == "Far - Dage med barselsdagpenge efter fødsel (gennemsnit)",
+                                        SEKTOR == "Sektor i alt",
+                                        SOCIALSTATUS %in% c("Topledere eller lønmodtager på højeste niveau", "Lønmodtagere på mellemniveau", "Lønmodtager på grundniveau"),
+                                        !BRANCHE %in% c("TOT Erhverv i alt", "11 Uoplyst aktivitet")) %>% 
+  
+                                        mutate(INDHOLD = parse_number(INDHOLD, locale = locale(decimal_mark = ",")),
+                                               TID = factor(TID)) %>%
+  
+                                        select(SOCIALSTATUS, BRANCHE, TID, INDHOLD)
+  
+barsel11_far
+```
+### Far model
+
+```{r}
+LM_brancher_far_interaction <- lm(data = barsel11_far, INDHOLD ~ SOCIALSTATUS + BRANCHE + TID + SOCIALSTATUS*BRANCHE)
+summary(LM_brancher_far_interaction)
+
+LM_brancher_far_no_interaction <- lm(data = barsel11_far, INDHOLD ~ SOCIALSTATUS + BRANCHE + TID)
+summary(LM_brancher_far_no_interaction)
+
+anova(LM_brancher_far_no_interaction, LM_brancher_far_interaction)
+```
+
+## Mor data
+```{r}
+barsel11_mor <- barsel11_big %>% filter(ENHED == "Mor - Dage med barselsdagpenge efter fødsel (gennemsnit)",
+                                        SEKTOR == "Sektor i alt",
+                                        SOCIALSTATUS %in% c("Topledere eller lønmodtager på højeste niveau", "Lønmodtagere på mellemniveau", "Lønmodtager på grundniveau"),
+                                        !BRANCHE %in% c("TOT Erhverv i alt", "11 Uoplyst aktivitet")) %>% 
+  
+                                        mutate(INDHOLD = parse_number(INDHOLD, locale = locale(decimal_mark = ",")),
+                                               TID = factor(TID)) %>%
+  
+                                        select(SOCIALSTATUS, BRANCHE, TID, INDHOLD)
+  
+barsel11_mor
+```
+### Mor model
+
+```{r}
+LM_brancher_mor_interaction <- lm(data = barsel11_mor, INDHOLD ~ SOCIALSTATUS + BRANCHE + TID + SOCIALSTATUS*BRANCHE)
+summary(LM_brancher_mor_interaction)
+
+LM_brancher_mor_no_interaction <- lm(data = barsel11_mor, INDHOLD ~ SOCIALSTATUS + BRANCHE + TID)
+summary(LM_brancher_mor_no_interaction)
+
+anova(LM_brancher_mor_no_interaction, LM_brancher_mor_interaction)
+```
+
+
