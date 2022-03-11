@@ -13,6 +13,7 @@ Loading data receiver package:
 ```{r}
 library(statsDK)
 library(tidyverse)
+library(readxl)
 ```
 
 ## DATA FOR UDDANNELSE I FORSKELLIGE LANDSDELE + INDBYGGERTAL I DENNE GRUPPE
