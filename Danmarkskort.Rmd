@@ -9,6 +9,7 @@ output: html_document
 library(tidyverse)
 library(sf)
 library(rgdal)
+library(readxl)
 ```
 
 Fra https://www.linkedin.com/pulse/easy-maps-denmark-r-mikkel-freltoft-krogsholm/
@@ -22,8 +23,7 @@ download.file(url, geofile)
 geodata <- rgdal::readOGR(geofile, use_iconv = TRUE, encoding = 'UTF-8') #skriv geodata@data for at få en data frame
 ```
 
-
-# Data til kort
+## Gennemsnitlig udd. landsdele
 ```{r}
 udd_gns_2019 <- read_rds("Data/udd_gns_2019.rds") %>% 
   mutate(Landsdel = str_remove_all(string = Landsdel, pattern = "Landsdel")) %>%  #fjerner "Landsdel" fra navnene
@@ -39,7 +39,6 @@ I ggplotdata kan man godt lave om på rækkefølgen af rækkerne. Derfor har jeg
 
 
 ```{r}
-geodata2 <- geodata #revert til oprindelig
 ggplotdata = sf::st_as_sf(geodata)
 
 ggplotdata2 <- data.frame(ggplotdata) %>% arrange(desc(navn)) %>% mutate(udd_gns = udd_gns_2019$gns_udd_score)
@@ -66,6 +65,102 @@ ggplot(ggplotdata2$geometry, aes(fill = ggplotdata2$navn)) +
 ggplot(ggplotdata2$geometry, aes(fill = ggplotdata2$udd_gns)) +
   geom_sf() +
   theme_minimal() +
-  labs(fill = "Gennemsnitligt uddannennelsesniveau (score)")
+  labs(fill = "Gennemsnitligt uddannennelsesniveau")
+```
+
+## Forskel i antal mænd og kvinder for landsdele
+
+```{r}
+køn_landsdele_2019 <- read_rds("Data/køn_landsdele_2019.rds")
+køn_landsdele_2019 <- køn_landsdele_2019 %>% mutate(Forskel = Mænd - Kvinder,
+                                                    Landsdel = str_remove_all(string = Landsdel, pattern = "Landsdel")) %>% 
+  arrange(desc(Landsdel))
+køn_landsdele_2019
+```
+
+```{r}
+ggplotdata2 <- ggplotdata2 %>% mutate(Diff_køn_antal = køn_landsdele_2019$Forskel)
+ggplotdata2
+```
+```{r}
+ggplot(ggplotdata2$geometry, aes(fill = ggplotdata2$Diff_køn_antal)) +
+  geom_sf() +
+  theme_minimal() +
+  labs(fill = "Antal mænd - antal kvinder")
+```
+# Gennemsnitsindkomst landsdele
+
+```{r}
+gnsindkomst_landsdele_2019 <- read_rds("Data/gns_indkomst_landsdele_2019.rds")
+gnsindkomst_landsdele_2019 <- gnsindkomst_landsdele_2019 %>% mutate(Landsdel = str_remove_all(string = Landsdel, pattern = "Landsdel")) %>% 
+  arrange(desc(Landsdel))
+gnsindkomst_landsdele_2019
+
+ggplotdata2 <- ggplotdata2 %>% mutate(Gns_indkomst = gnsindkomst_landsdele_2019$Gns_indkomst)
+```
+
+```{r}
+ggplot(ggplotdata2$geometry, aes(fill = ggplotdata2$Gns_indkomst)) +
+  geom_sf() +
+  theme_minimal() +
+  labs(fill = "Gns. indkomst")
+```
+
+Til medianindkomst (eller deciler) kan IFOR22 eller IFOR32 muligvis anvendes. 
+
+
+# Brancher fordelinger (se Linear_regressions.Rmd)
+
+Nedre 1/3 
+```{r}
+brancher_nedre <- read_excel("Data/brancher_beskæftigede_landsdele_nedre.xlsx")
+brancher_nedre <- brancher_nedre %>% mutate(Landsdel = str_remove_all(string = Landsdel, pattern = "Landsdel"),
+                                            Prop = Sum/Total_beskæftigede) %>% 
+  arrange(desc(Landsdel))
+brancher_nedre
+```
+
+
+Midte:
+```{r}
+brancher_midte <- read_excel("Data/brancher_beskæftigede_landsdele_midte.xlsx")
+brancher_midte <- brancher_midte %>% mutate(Landsdel = str_remove_all(string = Landsdel, pattern = "Landsdel"),
+                                            Prop = Sum/Total_beskæftigede) %>% 
+  arrange(desc(Landsdel))
+brancher_midte
+```
+
+Øvre 1/3:
+```{r}
+brancher_top <- read_excel("Data/brancher_beskæftigede_landsdele_øvre.xlsx")
+brancher_top <- brancher_top %>% mutate(Landsdel = str_remove_all(string = Landsdel, pattern = "Landsdel"),
+                                            Prop = Sum/Total_beskæftigede) %>% 
+  arrange(desc(Landsdel))
+brancher_top
+```
+
+```{r}
+ggplotdata2 <- ggplotdata2 %>% mutate(prop_i_brancher_nedre = brancher_nedre$Prop,
+                                      prop_i_brancher_midte = brancher_midte$Prop,
+                                      prop_i_brancher_top = brancher_top$Prop)
+ggplotdata2
+```
+```{r}
+ggplot(ggplotdata2$geometry, aes(fill = ggplotdata2$prop_i_brancher_nedre)) +
+  geom_sf() +
+  theme_minimal() +
+  labs(fill = "Andel i brancher med nedre 1/3\ni gns. barselsdage")
+```
+```{r}
+ggplot(ggplotdata2$geometry, aes(fill = ggplotdata2$prop_i_brancher_midte)) +
+  geom_sf() +
+  theme_minimal() +
+  labs(fill = "Andel i brancher med midterste 1/3\ni gns. barselsdage")
+```
+```{r}
+ggplot(ggplotdata2$geometry, aes(fill = ggplotdata2$prop_i_brancher_top)) +
+  geom_sf() +
+  theme_minimal() +
+  labs(fill = "Andel i brancher med øverste 1/3\ni gns. barselsdage")
 ```
 
