@@ -11,22 +11,61 @@ library(sf)
 library(rgdal)
 ```
 
-# Kort
+Fra https://www.linkedin.com/pulse/easy-maps-denmark-r-mikkel-freltoft-krogsholm/
 
+# Kort
 ```{r}
 url = "https://api.dataforsyningen.dk/landsdele?format=geojson"
 geofile = tempfile()
 download.file(url, geofile)
 
-geodata <- rgdal::readOGR(geofile)
+geodata <- rgdal::readOGR(geofile, use_iconv = TRUE, encoding = 'UTF-8') #skriv geodata@data for at få en data frame
+```
+
+
+# Data til kort
+```{r}
+udd_gns_2019 <- read_rds("Data/udd_gns_2019.rds") %>% 
+  mutate(Landsdel = str_remove_all(string = Landsdel, pattern = "Landsdel")) %>%  #fjerner "Landsdel" fra navnene
+  rename(gns_udd_score = gns) %>% arrange(desc(Landsdel))
+udd_gns_2019
+```
+
+Man kan ikke joine eks. udd_gns_2019 og geodata@data af uvisse årsager. 
+ggplotdata er den variabel som ggplot kan læse som et kort. Det er dog nødvendigt at der ikke er lavet om på rækkefølgen af rækkerne i geodata@data. Hvis der er det, passer navnene på landsdelene ikke længere. 
+
+I ggplotdata kan man godt lave om på rækkefølgen af rækkerne. Derfor har jeg sorteret "navn" (landsdel) efter faldende, og gjort det samme i udd_gns_2019. Så kan der tilføjes søjlen med gns. udd. for hver landsdel, ved blot at 'indsætte' den med mutate. 
+
+
+
+```{r}
+geodata2 <- geodata #revert til oprindelig
 ggplotdata = sf::st_as_sf(geodata)
-ggplotdata$navn = c("Byen København", "Københavns omegn", "Nordsjælland", "Bornholm", "Østsjælland", "Vest- og Sydsjælland", "Fyn", "Sydjylland", "Vestjylland", "Østjylland", "Nordjylland")
 
+ggplotdata2 <- data.frame(ggplotdata) %>% arrange(desc(navn)) %>% mutate(udd_gns = udd_gns_2019$gns_udd_score)
+ggplotdata2
+```
+Metode som virker uden at indsætte ekstra data i geodata:
 
-
+```{r}
 ggplot(ggplotdata, aes(fill = navn)) +
   geom_sf() +
   theme_minimal()
-
-ggplotdata$navn
 ```
+
+Alternativ metode, som beskrevet:
+
+```{r}
+ggplot(ggplotdata2$geometry, aes(fill = ggplotdata2$navn)) +
+  geom_sf() +
+  theme_minimal() +
+  labs(fill = "Landsdel")
+```
+
+```{r}
+ggplot(ggplotdata2$geometry, aes(fill = ggplotdata2$udd_gns)) +
+  geom_sf() +
+  theme_minimal() +
+  labs(fill = "Gennemsnitligt uddannennelsesniveau (score)")
+```
+
