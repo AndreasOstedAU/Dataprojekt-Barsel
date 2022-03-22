@@ -44,6 +44,17 @@ anova(LM_interaction_far, LM_no_interaction_far)
 ```
 
 
+## Far model med uddannelsesscore
+```{r}
+barsel04_far_2019 <- barsel04_far %>% filter(TID == 2019)
+udd_gns_2019 <- read_rds("Data/udd_gns_2019.rds")
+barsel04_far_2019_udd_gns <- left_join(barsel04_far_2019, udd_gns_2019, by = c("OMRÅDE" = "Landsdel")) 
+barsel04_far_2019_udd_gns
+
+lm(data = barsel04_far_2019_udd_gns, INDHOLD ~ UDDKOMB + gns) %>% summary()
+```
+
+
 ## Mor data
 ```{r}
 uddannelser_mor <- unique(barsel04_big$UDDKOMB)[2:6] #Mor har hhv. Ingen ungdomsudd., ungdomsudd, KVU, MVU, LVU
@@ -136,4 +147,7 @@ summary(LM_brancher_mor_no_interaction)
 anova(LM_brancher_mor_no_interaction, LM_brancher_mor_interaction)
 ```
 
+Branchefordeling på landsdele??
+LIGEAB4
 
+Del brancher op i chunks med 1/3 mindst barsel, 1/3 barsel i midten, 1/3 barsel i toppen - hvad er fordelingen på landsdele? 
