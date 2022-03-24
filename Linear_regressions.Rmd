@@ -53,7 +53,11 @@ barsel04_far_2019_udd_gns
 
 lm(data = barsel04_far_2019_udd_gns, INDHOLD ~ UDDKOMB + gns) %>% summary()
 ```
+```{r}
+lm(data = barsel04_far_2019_udd_gns, INDHOLD ~ gns) %>% summary()
+```
 
+LM med ovenstående (broom til sammenligning). evt. plotte det på et dk kort. Lave rækkefølgen af landsdele om så de kommer vest -> øst georgrafisk på x-aksen.
 
 ## Mor data
 ```{r}
