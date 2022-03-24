@@ -10,6 +10,7 @@ library(tidyverse)
 library(sf)
 library(rgdal)
 library(readxl)
+library(viridis)
 ```
 
 Fra https://www.linkedin.com/pulse/easy-maps-denmark-r-mikkel-freltoft-krogsholm/
@@ -70,23 +71,25 @@ ggplot(ggplotdata2$geometry, aes(fill = ggplotdata2$udd_gns)) +
 
 ## Forskel i antal mænd og kvinder for landsdele
 
+Lav relativ forskel.
 ```{r}
 køn_landsdele_2019 <- read_rds("Data/køn_landsdele_2019.rds")
-køn_landsdele_2019 <- køn_landsdele_2019 %>% mutate(Forskel = Mænd - Kvinder,
+køn_landsdele_2019 <- køn_landsdele_2019 %>% mutate(Relativ_forskel = ((Mænd - Kvinder)/(Mænd + Kvinder))*100,
                                                     Landsdel = str_remove_all(string = Landsdel, pattern = "Landsdel")) %>% 
   arrange(desc(Landsdel))
 køn_landsdele_2019
 ```
 
 ```{r}
-ggplotdata2 <- ggplotdata2 %>% mutate(Diff_køn_antal = køn_landsdele_2019$Forskel)
+ggplotdata2 <- ggplotdata2 %>% mutate(Diff_køn_relativ = køn_landsdele_2019$Relativ_forskel)
 ggplotdata2
 ```
 ```{r}
-ggplot(ggplotdata2$geometry, aes(fill = ggplotdata2$Diff_køn_antal)) +
+ggplot(ggplotdata2$geometry, aes(fill = ggplotdata2$Diff_køn_relativ)) +
   geom_sf() +
   theme_minimal() +
-  labs(fill = "Antal mænd - antal kvinder")
+  scale_fill_viridis(option = "plasma", direction = 1, alpha = 0.75, begin = 0.15, end = 0.85) +
+  labs(fill = "Antal mænd - antal kvinder, \nforskel i procent") 
 ```
 # Gennemsnitsindkomst landsdele
 
@@ -107,6 +110,41 @@ ggplot(ggplotdata2$geometry, aes(fill = ggplotdata2$Gns_indkomst)) +
 ```
 
 Til medianindkomst (eller deciler) kan IFOR22 eller IFOR32 muligvis anvendes. 
+
+## Q10, Q50 og Q90 for landsdele
+
+```{r}
+deciler_landsdele <- read_rds("Data/deciler_landsdel_2019.rds")
+deciler_landsdele <- deciler_landsdele %>% mutate(Landsdel = str_remove_all(string = Landsdel, pattern = "Landsdel")) %>% 
+  arrange(desc(Landsdel))
+deciler_landsdele
+ggplotdata2 <- ggplotdata2 %>% mutate(Q10 = deciler_landsdele$Q10,
+                                      Q50 = deciler_landsdele$Q50,
+                                      Q90 = deciler_landsdele$Q90)
+ggplotdata2
+```
+
+
+```{r}
+ggplot(ggplotdata2$geometry, aes(fill = ggplotdata2$Q10)) +
+  geom_sf() +
+  theme_minimal() +
+  labs(fill = "Q10")
+```
+
+```{r}
+ggplot(ggplotdata2$geometry, aes(fill = ggplotdata2$Q50)) +
+  geom_sf() +
+  theme_minimal() +
+  labs(fill = "Q50 - medianindkomst")
+```
+
+```{r}
+ggplot(ggplotdata2$geometry, aes(fill = ggplotdata2$Q90)) +
+  geom_sf() +
+  theme_minimal() +
+  labs(fill = "Q90")
+```
 
 
 # Brancher fordelinger (se Linear_regressions.Rmd)
