@@ -1,0 +1,45 @@
+---
+title: "Q10 og Q90"
+output: html_document
+date: '2022-03-24'
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(statsDK)
+library(tidyverse)
+library(readxl)
+```
+
+Info om data (IFOR32):
+Ved tolkning af 1. decil skal man være opmærksom på, at personer med store tab fx. på aktier eller selvstændig virksomhed kan trække indkomsten i 1. decil ned. Særligt i årene efter finanskrisen forekommer der ekstreme udsving. Tabellerne IFOR21 og IFOR22 giver et mere retvisende billede af udviklingen for laveste decil. Opdateret den 11. juni 2018 med reviderede data om skattefri kontanthjælp. 
+
+```{r}
+Q10Q90_kommune_2019 <- read_excel(path='Data/Q10Q90.xlsx')
+
+Q10Q90_kommune_2019
+```
+
+Inddeler data i landsdele:
+```{r}
+kommune_landsdel <- read_excel(path='Data/kommuner_landsdele.xlsx')
+
+#Fjerner kommune Christiansø, da denne ikke findes i datasæt IFOR32
+kommune_landsdel <- kommune_landsdel[!(kommune_landsdel$Kommune=="Christiansø"),]
+
+Q10Q90_landsdel_2019 <- Q10Q90_kommune_2019 %>% full_join(kommune_landsdel)
+
+Q10Q90_landsdel_2019 <- Q10Q90_landsdel_2019 %>% group_by(Landsdel) %>% summarise(Q10 = mean(`1. decil`), Q90 = mean(`9. decil`), Antal_kommuner=n())
+
+head(Q10Q90_landsdel_2019,11)
+```
+
+```{r}
+
+```
+
+
+
