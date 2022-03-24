@@ -156,7 +156,7 @@ Del brancher op i chunks med 1/3 mindst barsel, 1/3 barsel i midten, 1/3 barsel 
 brancher_simpelt_gns <- barsel11_big %>% filter(ENHED == "Far - Dage med barselsdagpenge efter fødsel (gennemsnit)",
                                         SEKTOR == "Sektor i alt",
                                         SOCIALSTATUS == "I alt",
-                                        TID == 2015,
+                                        TID == 2019,
                                         !BRANCHE %in% c("TOT Erhverv i alt", "11 Uoplyst aktivitet")) %>% 
   
                                         mutate(INDHOLD = parse_number(INDHOLD, locale = locale(decimal_mark = ","))) %>%
