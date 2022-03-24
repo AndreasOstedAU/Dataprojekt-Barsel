@@ -63,10 +63,17 @@ ggplot(ggplotdata2$geometry, aes(fill = ggplotdata2$navn)) +
 ```
 
 ```{r}
-ggplot(ggplotdata2$geometry, aes(fill = ggplotdata2$udd_gns)) +
+plot_udd <- ggplot(ggplotdata2$geometry, aes(fill = ggplotdata2$udd_gns)) +
   geom_sf() +
-  theme_minimal() +
-  labs(fill = "Gennemsnitligt uddannennelsesniveau")
+  theme_void() +
+  labs(fill = "Gennemsnitligt uddannennelsesniveau  \n(score)") +
+  theme(
+  axis.text.x = element_blank(),
+  axis.text.y = element_blank(),
+  axis.ticks = element_blank())
+
+plot_udd
+ggsave("Data/uddgns.png", plot = plot_udd)
 ```
 
 ## Forskel i antal mænd og kvinder for landsdele
@@ -87,9 +94,13 @@ ggplotdata2
 ```{r}
 ggplot(ggplotdata2$geometry, aes(fill = ggplotdata2$Diff_køn_relativ)) +
   geom_sf() +
-  theme_minimal() +
-  scale_fill_viridis(option = "plasma", direction = 1, alpha = 0.75, begin = 0.15, end = 0.85) +
-  labs(fill = "Antal mænd - antal kvinder, \nforskel i procent") 
+  theme_void() +
+  scale_fill_viridis(option = "viridis", direction = 1, alpha = 0.75, begin = 0.15, end = 0.95) +
+  labs(fill = "Antal mænd - antal kvinder, \nforskel i procent") +
+  theme(
+  axis.text.x = element_blank(),
+  axis.text.y = element_blank(),
+  axis.ticks = element_blank())
 ```
 # Gennemsnitsindkomst landsdele
 
@@ -105,8 +116,12 @@ ggplotdata2 <- ggplotdata2 %>% mutate(Gns_indkomst = gnsindkomst_landsdele_2019$
 ```{r}
 ggplot(ggplotdata2$geometry, aes(fill = ggplotdata2$Gns_indkomst)) +
   geom_sf() +
-  theme_minimal() +
-  labs(fill = "Gns. indkomst")
+  theme_void() +
+  labs(fill = "Gns. indkomst") +
+  theme(
+  axis.text.x = element_blank(),
+  axis.text.y = element_blank(),
+  axis.ticks = element_blank())
 ```
 
 Til medianindkomst (eller deciler) kan IFOR22 eller IFOR32 muligvis anvendes. 
@@ -128,22 +143,34 @@ ggplotdata2
 ```{r}
 ggplot(ggplotdata2$geometry, aes(fill = ggplotdata2$Q10)) +
   geom_sf() +
-  theme_minimal() +
-  labs(fill = "Q10")
+  theme_void() +
+  labs(fill = "Q10") +
+  theme(
+  axis.text.x = element_blank(),
+  axis.text.y = element_blank(),
+  axis.ticks = element_blank())
 ```
 
 ```{r}
 ggplot(ggplotdata2$geometry, aes(fill = ggplotdata2$Q50)) +
   geom_sf() +
-  theme_minimal() +
-  labs(fill = "Q50 - medianindkomst")
+  theme_void() +
+  labs(fill = "Q50 - medianindkomst") +
+  theme(
+  axis.text.x = element_blank(),
+  axis.text.y = element_blank(),
+  axis.ticks = element_blank())
 ```
 
 ```{r}
 ggplot(ggplotdata2$geometry, aes(fill = ggplotdata2$Q90)) +
   geom_sf() +
-  theme_minimal() +
-  labs(fill = "Q90")
+  theme_void() +
+  labs(fill = "Q90") +
+  theme(
+  axis.text.x = element_blank(),
+  axis.text.y = element_blank(),
+  axis.ticks = element_blank())
 ```
 
 
@@ -186,19 +213,65 @@ ggplotdata2
 ```{r}
 ggplot(ggplotdata2$geometry, aes(fill = ggplotdata2$prop_i_brancher_nedre)) +
   geom_sf() +
-  theme_minimal() +
-  labs(fill = "Andel i brancher med nedre 1/3\ni gns. barselsdage")
+  theme_void() +
+  labs(fill = "Andel i brancher med nedre 1/3 \ni gns. barselsdage") +
+  scale_fill_viridis(option = "mako", direction = -1, alpha = 0.75, begin = 0.15, end = 0.95) +
+  theme(
+  axis.text.x = element_blank(),
+  axis.text.y = element_blank(),
+  axis.ticks = element_blank())
 ```
 ```{r}
 ggplot(ggplotdata2$geometry, aes(fill = ggplotdata2$prop_i_brancher_midte)) +
   geom_sf() +
-  theme_minimal() +
-  labs(fill = "Andel i brancher med midterste 1/3\ni gns. barselsdage")
+  theme_void() +
+  labs(fill = "Andel i brancher med midterste 1/3 \ni gns. barselsdage") + 
+  scale_fill_viridis(option = "mako", direction = -1, alpha = 0.75, begin = 0.15, end = 0.95) +
+  theme(
+  axis.text.x = element_blank(),
+  axis.text.y = element_blank(),
+  axis.ticks = element_blank())
 ```
 ```{r}
 ggplot(ggplotdata2$geometry, aes(fill = ggplotdata2$prop_i_brancher_top)) +
   geom_sf() +
-  theme_minimal() +
-  labs(fill = "Andel i brancher med øverste 1/3\ni gns. barselsdage")
+  theme_void() +
+  labs(fill = "Andel i brancher med øverste 1/3 \ni gns. barselsdage") + 
+  scale_fill_viridis(option = "mako", direction = -1, alpha = 0.75, begin = 0.15, end = 0.95) +
+  theme(
+  axis.text.x = element_blank(),
+  axis.text.y = element_blank(),
+  axis.ticks = element_blank())
+```
+
+# Gennemsnitlig fødealder mænd og kvinder 
+
+```{r}
+fødealder_landsdel_2019 <- read_rds("Data/fødealder_landsdel_2019.rds")
+fødealder_landsdel_2019 <- fødealder_landsdel_2019 %>% mutate(Landsdel = str_remove_all(string = Landsdel, pattern = "Landsdel")) %>% 
+  arrange(desc(Landsdel))
+ggplotdata2 <- ggplotdata2 %>% mutate(gns_førstefødte_mor = fødealder_landsdel_2019$gns_førstefødte_mor,
+                                      gns_førstefødte_far = fødealder_landsdel_2019$gns_første_far)
+ggplotdata2
+```
+```{r}
+ggplot(ggplotdata2$geometry, aes(fill = ggplotdata2$gns_førstefødte_mor)) +
+  geom_sf() +
+  theme_void() +
+  labs(fill = "Gennemsnitsalder ved førstefødte - mor  ") +
+  theme(
+  axis.text.x = element_blank(),
+  axis.text.y = element_blank(),
+  axis.ticks = element_blank())
+```
+```{r}
+ggplot(ggplotdata2$geometry, aes(fill = ggplotdata2$gns_førstefødte_far)) +
+  geom_sf() +
+  theme_void() +
+  labs(fill = "Gennemsnitsalder ved førstefødte - far  ") +
+  theme(
+  axis.text.x = element_blank(),
+  axis.text.y = element_blank(),
+  axis.ticks = element_blank())
 ```
 
