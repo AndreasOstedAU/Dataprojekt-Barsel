@@ -1,0 +1,41 @@
+---
+title: "Plots"
+author: "Clara Wolff Jespersen"
+date: "11/03/2022"
+output: html_document
+theme: readable
+---
+
+
+```{r}
+library(tidyverse)
+library(statsDK)
+```
+
+
+
+```{r}
+df <- read_rds(file = "Data/barsel04.rds")
+
+df$value <- str_replace_all(df$INDHOLD, pattern = ",", replacement = ".") %>% as.double()
+
+pd <- df %>% 
+      filter(TAL %in% "Far - barselsdagpengedage i gennemsnit", 
+            ORLOV1 %in% "Alle forældrepar, uanset deling af orlov",
+                                        grepl(UDDKOMB, pattern = "Far"), #uddannelseskombinationer som kun indeholder far
+                                        OMRÅDE %in% c("Landsdel Nordsjælland","Landsdel Vestjylland")) %>% 
+                                        select(UDDKOMB, OMRÅDE, TID, INDHOLD) %>% 
+                                        arrange(OMRÅDE, TID) %>% 
+                                        mutate(INDHOLD = parse_number(INDHOLD, locale = locale(decimal_mark = ",")),
+                                        TID = factor(TID))
+
+
+pd <- pd %>% mutate(UDDKOMB=fct_inorder(UDDKOMB))
+levels(pd$UDDKOMB)
+
+ggplot(pd, aes(x=UDDKOMB, y=INDHOLD, fill=OMRÅDE)) + 
+  geom_col(position = position_dodge2()) +
+  coord_flip()
+```
+
+
