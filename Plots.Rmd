@@ -10,11 +10,17 @@ theme: readable
 ```{r}
 library(tidyverse)
 library(statsDK)
+library(readxl)
 ```
 
 
 
 ```{r}
+
+cbbPalette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+
+scale_fill_manual(values=cbbPalette)
+  
 df <- read_rds(file = "Data/barsel04.rds")
 
 df$value <- str_replace_all(df$INDHOLD, pattern = ",", replacement = ".") %>% as.double()
@@ -31,11 +37,85 @@ pd <- df %>%
 
 
 pd <- pd %>% mutate(UDDKOMB=fct_inorder(UDDKOMB))
-levels(pd$UDDKOMB)
 
-ggplot(pd, aes(x=UDDKOMB, y=INDHOLD, fill=OMRÅDE)) + 
+
+pd %>% mutate(OMRÅDE=fct_relevel(OMRÅDE,"Landsdel Vestjylland","Landsdel Nordsjælland")) %>% 
+  filter(TID=="2019") %>% 
+  ggplot(aes(x=UDDKOMB, y=INDHOLD, fill=OMRÅDE)) +
   geom_col(position = position_dodge2()) +
+  scale_fill_manual(values=cbbPalette[c(3,8)])+
+  labs(title="Fædres Barsel sammenligning")+
+  ylab("Gns. #Barselsdage for fædre")+
+  xlab("Fars uddannelsesniveau")+
   coord_flip()
 ```
 
+```{r}
+pd$OMRÅDE[pd$INDHOLD==max(pd$INDHOLD[pd$UDDKOMB=="Far har Lang videregående uddannelse (LVU)"])]
+pd$OMRÅDE[pd$INDHOLD==min(pd$INDHOLD[pd$UDDKOMB=="Far har Lang videregående uddannelse (LVU)"])]
+```
+```{r}
+all<- df %>% 
+      filter(TAL %in% "Far - barselsdagpengedage i gennemsnit", 
+            ORLOV1 %in% "Alle forældrepar, uanset deling af orlov",
+                                        grepl(UDDKOMB, pattern = "Far")) %>%  #uddannelseskombinationer som kun indeholder far 
+                                        filter(OMRÅDE=="Hele landet") %>% 
+                                        select(UDDKOMB, OMRÅDE, TID, INDHOLD) %>% 
+                                        arrange(OMRÅDE, TID) %>% 
+                                        mutate(INDHOLD = parse_number(INDHOLD, locale = locale(decimal_mark = ",")),
+                                        TID = factor(TID))
+
+
+all <- all %>% mutate(UDDKOMB=fct_inorder(UDDKOMB))
+
+
+
+all %>% 
+  ggplot(aes(x=UDDKOMB, y=INDHOLD, col=TID)) +
+  geom_point() +
+  geom_line(aes(group=TID))+
+  labs(title="Fædres barselsdage ifht. uddannelsesniveau")+
+  ylab("Gns. antal barselsdage for fædre")+
+  xlab("Fars uddannelsesniveau")+
+  scale_x_discrete("Uddannelsesniveau",
+    labels = c(
+      "Far har ingen ungdomsuddannelse" = "Ingen ungdomsuddannelse",
+      "Far har ungdomsuddannelse." = "Ungdomsuddannelse",
+      "Far har Kort videregående uddannelse (KVU)" = "Kort videregående",
+      "Far har Mellemlang videregående uddannelse (MVU)" = "Mellemlang videregående",
+      "Far har Lang videregående uddannelse (LVU)" = "Lang videregående"
+    )
+    ,guide = guide_axis(n.dodge = 2))
+
+```
+
+```{r}
+ford<-read_excel(path="Data/Fordelingbrancher.xlsx")
+```
+
+```{r}
+ford<-ford %>% pivot_wider(names_from = ERHVERV,values_from=`2019`) %>% 
+group_by(OMRÅDE) %>%
+mutate_at(vars("A Landbrug, skovbrug og fiskeri":"X Uoplyst aktivitet"), funs(./`TOT Erhverv i alt`))
+```
+
+```{r}
+ford_branche<-ford %>% select(!"TOT Erhverv i alt") %>% pivot_longer(!OMRÅDE,names_to="Branche",values_to="Andel i branche")
+```
+
+
+
+
+```{r}
+ford_branche %>% filter(OMRÅDE %in% c("Landsdel Nordsjælland","Landsdel Vestjylland")) %>%  
+  mutate(OMRÅDE=fct_relevel(OMRÅDE,"Landsdel Vestjylland","Landsdel Nordsjælland")) %>% 
+  filter(Branche %in% c("MA Rådgivning mv.","K Finansiering og forsikring","JC It- og informationstjenester","CK Maskinindustri","CA Føde-, drikke- og tobaksvareindustri","A Landbrug, skovbrug og fiskeri","O Offentlig administration, forsvar og politi","QA Sundhedsvæsen","QB Sociale institutioner")) %>% 
+  ggplot(aes(x=Branche, y=`Andel i branche`, fill=OMRÅDE)) +
+  geom_col(position = position_dodge2()) +
+  scale_fill_manual(values=cbbPalette[c(3,8)])+
+  labs(title="Brancher sammenligning")+
+  ylab("Andel")+
+  xlab("Brancher")+
+  coord_flip()
+```
 
