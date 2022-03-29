@@ -16,6 +16,7 @@ library(viridis)
 Fra https://www.linkedin.com/pulse/easy-maps-denmark-r-mikkel-freltoft-krogsholm/
 
 # Kort
+Data for landsdele:
 ```{r}
 url = "https://api.dataforsyningen.dk/landsdele?format=geojson"
 geofile = tempfile()
@@ -23,6 +24,17 @@ download.file(url, geofile)
 
 geodata <- rgdal::readOGR(geofile, use_iconv = TRUE, encoding = 'UTF-8') #skriv geodata@data for at få en data frame
 ```
+
+Data for kommuner: 
+```{r}
+url2 <- "https://api.dataforsyningen.dk/kommuner?format=geojson"
+geofile2 = tempfile()
+download.file(url2, geofile2)
+
+geodata3 <- rgdal::readOGR(geofile2, use_iconv = TRUE, encoding = 'UTF-8')
+geodata3
+```
+
 
 ## Gennemsnitlig udd. landsdele
 ```{r}
@@ -61,12 +73,22 @@ ggplot(ggplotdata2$geometry, aes(fill = ggplotdata2$navn)) +
   theme_minimal() +
   labs(fill = "Landsdel")
 ```
+Kommuneplot:
+```{r}
+ggplotdata3 <- sf::st_as_sf(geodata3)
+ggplot(ggplotdata3, aes(fill = navn)) +
+  geom_sf() +
+  theme_minimal() +
+  theme(legend.position = "none")
+```
+
+
 
 ```{r}
 plot_udd <- ggplot(ggplotdata2$geometry, aes(fill = ggplotdata2$udd_gns)) +
   geom_sf() +
   theme_void() +
-  labs(fill = "Gennemsnitligt uddannennelsesniveau  \n(score)") +
+  labs(fill = "Gennemsnitligt uddannelsesniveau \n(score)\n") +
   theme(
   axis.text.x = element_blank(),
   axis.text.y = element_blank(),
@@ -95,7 +117,9 @@ ggplotdata2
 ggplot(ggplotdata2$geometry, aes(fill = ggplotdata2$Diff_køn_relativ)) +
   geom_sf() +
   theme_void() +
-  scale_fill_viridis(option = "viridis", direction = 1, alpha = 0.75, begin = 0.15, end = 0.95) +
+  #scale_fill_viridis(option = "viridis", direction = 1, alpha = 0.75, begin = 0.15, end = 0.95) +
+  #scale_fill_gradientn(colors = (cm.colors(100, rev = TRUE, alpha = 0.75)), limit = c(-2.75, 2.75)) +
+  scale_fill_gradient(low = 'violet', high = 'skyblue1',limit = c(-2.75, 2.75)) +
   labs(fill = "Antal mænd - antal kvinder, \nforskel i procent") +
   theme(
   axis.text.x = element_blank(),
@@ -215,7 +239,7 @@ ggplot(ggplotdata2$geometry, aes(fill = ggplotdata2$prop_i_brancher_nedre)) +
   geom_sf() +
   theme_void() +
   labs(fill = "Andel i brancher med nedre 1/3 \ni gns. barselsdage") +
-  scale_fill_viridis(option = "mako", direction = -1, alpha = 0.75, begin = 0.15, end = 0.95) +
+  scale_fill_viridis(option = "mako", direction = 1, alpha = 0.75, begin = 0.15, end = 0.95) +
   theme(
   axis.text.x = element_blank(),
   axis.text.y = element_blank(),
@@ -226,7 +250,7 @@ ggplot(ggplotdata2$geometry, aes(fill = ggplotdata2$prop_i_brancher_midte)) +
   geom_sf() +
   theme_void() +
   labs(fill = "Andel i brancher med midterste 1/3 \ni gns. barselsdage") + 
-  scale_fill_viridis(option = "mako", direction = -1, alpha = 0.75, begin = 0.15, end = 0.95) +
+  scale_fill_viridis(option = "mako", direction = 1, alpha = 0.75, begin = 0.15, end = 0.95) +
   theme(
   axis.text.x = element_blank(),
   axis.text.y = element_blank(),
@@ -237,7 +261,7 @@ ggplot(ggplotdata2$geometry, aes(fill = ggplotdata2$prop_i_brancher_top)) +
   geom_sf() +
   theme_void() +
   labs(fill = "Andel i brancher med øverste 1/3 \ni gns. barselsdage") + 
-  scale_fill_viridis(option = "mako", direction = -1, alpha = 0.75, begin = 0.15, end = 0.95) +
+  scale_fill_viridis(option = "mako", direction = 1, alpha = 0.75, begin = 0.15, end = 0.95) +
   theme(
   axis.text.x = element_blank(),
   axis.text.y = element_blank(),

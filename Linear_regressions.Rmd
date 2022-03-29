@@ -8,6 +8,7 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
+library(broom)
 ```
 
 # BARSEL04 - modeller for far og mors gennemsnitlig antal barselsdage efter uddannelse, landsdel, år og interaktion på landsdel og udd. 
@@ -51,8 +52,11 @@ udd_gns_2019 <- read_rds("Data/udd_gns_2019.rds")
 barsel04_far_2019_udd_gns <- left_join(barsel04_far_2019, udd_gns_2019, by = c("OMRÅDE" = "Landsdel")) 
 barsel04_far_2019_udd_gns
 
-lm(data = barsel04_far_2019_udd_gns, INDHOLD ~ UDDKOMB + gns) %>% summary()
+lm_gns <- lm(data = barsel04_far_2019_udd_gns, INDHOLD ~ UDDKOMB + gns)
+summary(lm_gns)
 ```
+
+
 ```{r}
 lm(data = barsel04_far_2019_udd_gns, INDHOLD ~ gns) %>% summary()
 ```
