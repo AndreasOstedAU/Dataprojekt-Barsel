@@ -44,9 +44,11 @@ pd %>% mutate(OMRÅDE=fct_relevel(OMRÅDE,"Landsdel Vestjylland","Landsdel Nords
   ggplot(aes(x=UDDKOMB, y=INDHOLD, fill=OMRÅDE)) +
   geom_col(position = position_dodge2()) +
   scale_fill_manual(values=cbbPalette[c(3,8)])+
-  labs(title="Fædres Barsel sammenligning")+
   ylab("Gns. #Barselsdage for fædre")+
   xlab("Fars uddannelsesniveau")+
+  scale_fill_manual(values=c("skyblue2","palegreen2"))+
+  theme_classic()+
+  theme(text = element_text(size = 8))+
   coord_flip()
 ```
 
@@ -74,7 +76,6 @@ all %>%
   ggplot(aes(x=UDDKOMB, y=INDHOLD, col=TID)) +
   geom_point() +
   geom_line(aes(group=TID))+
-  labs(title="Fædres barselsdage ifht. uddannelsesniveau")+
   ylab("Gns. antal barselsdage for fædre")+
   xlab("Fars uddannelsesniveau")+
   scale_x_discrete("Uddannelsesniveau",
@@ -85,7 +86,9 @@ all %>%
       "Far har Mellemlang videregående uddannelse (MVU)" = "Mellemlang videregående",
       "Far har Lang videregående uddannelse (LVU)" = "Lang videregående"
     )
-    ,guide = guide_axis(n.dodge = 2))
+    ,guide = guide_axis(n.dodge = 2))+
+  theme_classic()+
+  theme(text = element_text(size = 8))
 
 ```
 
@@ -107,15 +110,18 @@ ford_branche<-ford %>% select(!"TOT Erhverv i alt") %>% pivot_longer(!OMRÅDE,na
 
 
 ```{r}
+
 ford_branche %>% filter(OMRÅDE %in% c("Landsdel Nordsjælland","Landsdel Vestjylland")) %>%  
   mutate(OMRÅDE=fct_relevel(OMRÅDE,"Landsdel Vestjylland","Landsdel Nordsjælland")) %>% 
-  filter(Branche %in% c("MA Rådgivning mv.","K Finansiering og forsikring","JC It- og informationstjenester","CK Maskinindustri","CA Føde-, drikke- og tobaksvareindustri","A Landbrug, skovbrug og fiskeri","O Offentlig administration, forsvar og politi","QA Sundhedsvæsen","QB Sociale institutioner")) %>% 
+   mutate(Branche=fct_relevel(Branche,"CA Føde-, drikke- og tobaksvareindustri","A Landbrug, skovbrug og fiskeri","CK Maskinindustri","MA Rådgivning mv.","JC It- og informationstjenester","K Finansiering og forsikring","CI Elektronikindustri")) %>% 
+  filter(Branche %in% c("MA Rådgivning mv.","K Finansiering og forsikring","JC It- og informationstjenester","CK Maskinindustri","CA Føde-, drikke- og tobaksvareindustri","A Landbrug, skovbrug og fiskeri","CI Elektronikindustri")) %>% 
   ggplot(aes(x=Branche, y=`Andel i branche`, fill=OMRÅDE)) +
-  geom_col(position = position_dodge2()) +
-  scale_fill_manual(values=cbbPalette[c(3,8)])+
-  labs(title="Brancher sammenligning")+
+  geom_col(position = position_dodge(),width = 0.8) +
+  scale_fill_manual(values=c("skyblue2","palegreen2"))+
   ylab("Andel")+
   xlab("Brancher")+
+  theme_classic()+
+  theme(text = element_text(size = 8))+
   coord_flip()
 ```
 
