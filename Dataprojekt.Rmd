@@ -153,13 +153,6 @@ indkomstgrupper_landsdele_2019 %>% ggplot(mapping = aes(x = Proportion, y=Indkom
    theme(text = element_text(size = 5), element_line(size = 0.2))
 ```
 
-### SAMLET DATA FOR LANDSDELENE?
-```{r}
-fulldata <- gnsindkomst_landsdele_2019 %>% full_join(udd_gns_2019)
-fulldata <- fulldata %>% full_join(fødealder_landsdel_2019)
-fulldata <- fulldata %>% full_join(køn_landsdele_2019)
-```
-
 ### DECILER FOR LANDSDELENE
 
 Taget fra IFOR22 (Christiansø mangler, men er undtaget fra gennemsnittet, da det alligevel er en meget lille kommune)
@@ -172,6 +165,42 @@ deciler_landsdel_2019 <- deciler_kommuner %>% full_join(kommune_landsdel_udenchr
 
 deciler_landsdel_2019
 ```
+```{r}
+### ulighed for vestjylland og nordsjælland
+folketal_kommuner <- read_excel("Data/Kommune_folketal_2019.xlsx")
+folketal_kommuner <- folketal_kommuner %>% filter(Kommune!='Christiansø')
+
+kommune_landsdel_udenchristian <- kommune_landsdel %>% filter(Kommune!='Christiansø')
+
+deciler_landsdel_2019_nordvest <- deciler_kommuner %>% full_join(kommune_landsdel_udenchristian) %>% group_by(Landsdel) %>% filter(Landsdel %in% c("Landsdel Nordsjælland","Landsdel Vestjylland")) %>% full_join(folketal_kommuner) 
+
+landsdel_folketal <- deciler_landsdel_2019_nordvest %>% group_by(Landsdel) %>% summarise(SamletAntal=sum(Antal), n=n())
+
+deciler_landsdel_2019_nordvest <- deciler_landsdel_2019_nordvest %>% full_join(landsdel_folketal) %>% select(!n) %>% mutate(prop=Antal/SamletAntal) %>% group_by(Landsdel) %>% summarise(Q10=sum(prop*`1. decil`),Q90=sum(prop*`9. decil`),Antal_kommuner=n())
+
+deciler_landsdel_2019_nordvest <- deciler_landsdel_2019_nordvest %>% mutate(ulighed=Q90/Q10)
+
+deciler_landsdel_2019_nordvest
+```
+```{r}
+folketal_kommuner <- read_excel("Data/Kommune_folketal_2019.xlsx")
+folketal_kommuner <- folketal_kommuner %>% filter(Kommune!='Christiansø')
+
+deciler_landsdel_2019_helelandet <- deciler_kommuner %>% full_join(folketal_kommuner) %>% mutate(Land="Danmark")
+deciler_landsdel_2019_helelandet
+
+land_folketal <- deciler_landsdel_2019_helelandet %>% group_by(Land) %>% summarise(SamletAntal=sum(Antal), n=n())
+land_folketal
+
+deciler_landsdel_2019_helelandet <- deciler_landsdel_2019_helelandet %>% full_join(land_folketal) %>% select(!n) %>%  mutate(prop=Antal/SamletAntal) %>% group_by(Land) %>% summarise(Q10=sum(prop*`1. decil`),Q90=sum(prop*`9. decil`),Antal_kommuner=n())
+deciler_landsdel_2019_helelandet
+
+deciler_landsdel_2019_helelandet <- deciler_landsdel_2019_helelandet %>% mutate(ulighed=Q90/Q10) 
+deciler_landsdel_2019_helelandet
+```
+
+
+
 ```{r}
 deciler_landsdel_2019 %>% mutate(Landsdel = fct_relevel(Landsdel, 
             'Landsdel Bornholm','Landsdel Byen København','Landsdel Københavns omegn', 'Landsdel Nordsjælland', 'Landsdel Vest- og Sydsjælland', 'Landsdel Østsjælland', 'Landsdel Fyn', 'Landsdel Sydjylland', 'Landsdel Vestjylland', 'Landsdel Østjylland', 'Landsdel Nordjylland')) %>% select(!Antal_kommuner) %>% pivot_longer(!Landsdel, names_to = "Deciler", values_to = "Indkomst")  %>% ggplot(mapping = aes(x = Deciler, y=Indkomst)) + geom_bar(stat='identity', width=0.8, aes(fill=Landsdel)) + facet_wrap(~Landsdel, ncol = 6, nrow = 3) + theme(axis.text.x = element_text(angle = 0, vjust = 0.5, hjust=1)) + labs(title = "Fordeling af indkomstgrupper i landsdele") + theme(axis.text.y = element_text(angle = 0, vjust = 1, hjust=1)) + 
