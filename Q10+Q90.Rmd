@@ -1,5 +1,5 @@
 ---
-title: "Q10 og Q90"
+title: "Q10 og Q90 - Rebekka"
 output: html_document
 date: '2022-03-24'
 ---
@@ -13,6 +13,9 @@ library(statsDK)
 library(tidyverse)
 library(readxl)
 ```
+
+Forklaring af Deciler:
+https://www.dst.dk/Site/Dst/SingleFiles/GetArchiveFile.aspx?fi=arbejde-loen-og-indkomst&fo=deciler--pdf&ext={2}
 
 Info om data (IFOR32):
 Ved tolkning af 1. decil skal man være opmærksom på, at personer med store tab fx. på aktier eller selvstændig virksomhed kan trække indkomsten i 1. decil ned. Særligt i årene efter finanskrisen forekommer der ekstreme udsving. Tabellerne IFOR21 og IFOR22 giver et mere retvisende billede af udviklingen for laveste decil. Opdateret den 11. juni 2018 med reviderede data om skattefri kontanthjælp. 
@@ -37,8 +40,66 @@ Q10Q90_landsdel_2019 <- Q10Q90_landsdel_2019 %>% group_by(Landsdel) %>% summaris
 head(Q10Q90_landsdel_2019,11)
 ```
 
-```{r}
 
+# Plot af farsbarsel fordelt på brancher 
+
+```{r}
+barsel11 <- read_rds("Data/barsel11.rds")
+```
+
+```{r}
+head(barsel11)
+```
+
+
+```{r}
+barsel11_far <- barsel11_big %>% 
+  filter(ENHED == "Far - Dage med barselsdagpenge efter fødsel (gennemsnit)", SEKTOR == "Sektor i alt", SOCIALSTATUS == "I alt", !BRANCHE %in% c("TOT Erhverv i alt", "11 Uoplyst aktivitet")) %>% 
+  mutate(INDHOLD = parse_number(INDHOLD, locale = locale(decimal_mark = ",")), TID = factor(TID))
+  
+barsel11_far
+```
+
+
+
+
+```{r}
+barsel11_far <- barsel11_far %>% arrange(INDHOLD)
+
+
+barsel11_far %>% 
+  ggplot(aes(x=BRANCHE, y=INDHOLD, col=TID)) +
+  geom_point() +
+  geom_hline(yintercept=c(20,30,40,50), color = "grey", size=0.1)+
+  geom_line(aes(group=TID))+
+  ylab("Gns. antal barselsdage for fædre")+
+  xlab("Brancher")+
+  scale_x_discrete("Brancher",
+    labels = c(
+      "1 Landbrug, skovbrug og fiskeri" = "A",
+      "2 Industri, råstofindvinding og forsyningsvirksomhed" = "E",
+      "3 Bygge og anlæg" = "B",
+      "4 Handel og transport mv." = "D",
+      "5 Information og kommunikation" = "H",
+      "6 Finansiering og forsikring" = "J",
+      "7 Ejendomshandel og udlejning" = "C",
+      "8 Erhvervsservice" = "F",
+      "9 Offentlig administration, undervisning og sundhed" = "I",
+      "10 Kultur, fritid og anden service" = "G"
+    ), 
+      limits = c(
+        "1 Landbrug, skovbrug og fiskeri",
+        "3 Bygge og anlæg",
+        "7 Ejendomshandel og udlejning",
+        "4 Handel og transport mv.",
+        "2 Industri, råstofindvinding og forsyningsvirksomhed",
+        "8 Erhvervsservice",
+        "10 Kultur, fritid og anden service",
+        "5 Information og kommunikation",
+        "9 Offentlig administration, undervisning og sundhed",
+        "6 Finansiering og forsikring"))+
+  theme_classic()+
+  theme(text = element_text(size = 8))
 ```
 
 
