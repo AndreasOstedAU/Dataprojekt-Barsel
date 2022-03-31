@@ -46,7 +46,15 @@ pd %>% mutate(OMRÅDE=fct_relevel(OMRÅDE,"Landsdel Vestjylland","Landsdel Nords
   scale_fill_manual(values=cbbPalette[c(3,8)])+
   ylab("Gns. #Barselsdage for fædre")+
   xlab("Fars uddannelsesniveau")+
-  scale_fill_manual(values=c("skyblue2","palegreen2"))+
+  scale_x_discrete(" Fars Uddannelsesniveau",
+    labels = c(
+      "Far har ingen ungdomsuddannelse" = "Ingen ungdomsuddannelse",
+      "Far har ungdomsuddannelse." = "Ungdomsuddannelse",
+      "Far har Kort videregående uddannelse (KVU)" = "Kort videregående",
+      "Far har Mellemlang videregående uddannelse (MVU)" = "Mellemlang videregående",
+      "Far har Lang videregående uddannelse (LVU)" = "Lang videregående"
+    ))+
+  scale_fill_manual(values=c("skyblue2","palegreen2"),name="Landsdel")+
   theme_classic()+
   theme(text = element_text(size = 8))+
   coord_flip()
@@ -117,11 +125,58 @@ ford_branche %>% filter(OMRÅDE %in% c("Landsdel Nordsjælland","Landsdel Vestjy
   filter(Branche %in% c("MA Rådgivning mv.","K Finansiering og forsikring","JC It- og informationstjenester","CK Maskinindustri","CA Føde-, drikke- og tobaksvareindustri","A Landbrug, skovbrug og fiskeri","CI Elektronikindustri")) %>% 
   ggplot(aes(x=Branche, y=`Andel i branche`, fill=OMRÅDE)) +
   geom_col(position = position_dodge(),width = 0.8) +
-  scale_fill_manual(values=c("skyblue2","palegreen2"))+
+  scale_fill_manual(values=c("skyblue2","palegreen2"),name="Landsdel")+
   ylab("Andel")+
   xlab("Brancher")+
   theme_classic()+
   theme(text = element_text(size = 8))+
   coord_flip()
 ```
+
+
+
+```{r}
+udd_landsdele_2019 <- read_excel(path='Data/uddannelsesgrupper_landsdele_2019.xlsx')
+
+udd_landsdele_2019 <- cbind(udd_landsdele_2019, Antal_indbyggere = rowSums(udd_landsdele_2019[,2:11]))
+```
+
+
+```{r}
+udd_landsdele_2019 <- udd_landsdele_2019 %>% mutate(Ingen_ungdomsuddannelse=`H10 Grundskole`, Ungdomsuddannelse=`H20 Gymnasiale uddannelser`+`H30 Erhvervsfaglige uddannelser`+`H35 Adgangsgivende uddannelsesforløb`, Kort_videregående=`H40 Korte videregående uddannelser, KVU`, Mellemlang_videregående = `H50 Mellemlange videregående uddannelser, MVU` + `H60 Bacheloruddannelser, BACH`, Lang_videregående=`H70 Lange videregående uddannelser, LVU` + `H80 Ph.d. og forskeruddannelser`, Uoplyst=`H90 Uoplyst mv.`)
+
+udd_landsdele_2019 <- udd_landsdele_2019 %>% select(Landsdel, Ingen_ungdomsuddannelse, Ungdomsuddannelse, Kort_videregående, Mellemlang_videregående, Lang_videregående, Uoplyst, Antal_indbyggere)
+```
+
+```{r}
+udd_landsdele_prop_2019 <- udd_landsdele_2019 %>% mutate(ProportionIngen=Ingen_ungdomsuddannelse/Antal_indbyggere, ProportionUngdoms=Ungdomsuddannelse/Antal_indbyggere, ProportionKort=Kort_videregående/Antal_indbyggere, ProportionMellem= Mellemlang_videregående/Antal_indbyggere, ProportionLang=Lang_videregående/Antal_indbyggere, ProportionUoplyst=Uoplyst/Antal_indbyggere) %>% select(Landsdel, ProportionIngen, ProportionUngdoms, ProportionKort, ProportionMellem, ProportionLang, ProportionUoplyst)
+```
+
+```{r}
+udd_pivot <- udd_landsdele_prop_2019  %>% rename(Uoplyst=ProportionUoplyst, Ungdomsuddannelse=ProportionUngdoms, KortVidere=ProportionKort, MellemLang=ProportionMellem, Lang = ProportionLang, Ingen=ProportionIngen) %>% pivot_longer(!Landsdel, names_to = "Uddannelse", values_to = "Proportion")
+
+udd_pivot <- udd_pivot %>% mutate(Uddannelse=fct_inorder(Uddannelse))
+
+udd_pivot %>% filter(Landsdel %in% c("Landsdel Nordsjælland","Landsdel Vestjylland")) %>%  
+  mutate(Landsdel=fct_relevel(Landsdel,"Landsdel Vestjylland","Landsdel Nordsjælland")) %>% 
+  filter(Uddannelse!="Uoplyst") %>% 
+  ggplot(aes(x=Uddannelse, y=Proportion, fill=Landsdel)) +
+  geom_col(position = position_dodge(),width = 0.8) +
+  scale_fill_manual(values=c("skyblue2","palegreen2"))+
+  ylab("Andel")+
+  xlab("Uddannelse")+
+  scale_x_discrete("Uddannelsesniveau",
+    labels = c(
+      "Far har ingen ungdomsuddannelse" = "Ingen ungdomsuddannelse",
+      "Far har ungdomsuddannelse." = "Ungdomsuddannelse",
+      "Far har Kort videregående uddannelse (KVU)" = "Kort videregående",
+      "Far har Mellemlang videregående uddannelse (MVU)" = "Mellemlang videregående",
+      "Far har Lang videregående uddannelse (LVU)" = "Lang videregående"
+    ))+
+  theme_classic()+
+  theme(text = element_text(size = 8))+
+  coord_flip()
+```
+
+
 
