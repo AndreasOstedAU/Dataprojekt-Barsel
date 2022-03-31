@@ -96,6 +96,7 @@ all %>%
     )
     ,guide = guide_axis(n.dodge = 2))+
   theme_classic()+
+  geom_hline(yintercept=c(20,30,40,50),color="grey",size=0.1)+
   theme(text = element_text(size = 8))
 
 ```
@@ -167,16 +168,80 @@ udd_pivot %>% filter(Landsdel %in% c("Landsdel Nordsjælland","Landsdel Vestjyll
   xlab("Uddannelse")+
   scale_x_discrete("Uddannelsesniveau",
     labels = c(
-      "Far har ingen ungdomsuddannelse" = "Ingen ungdomsuddannelse",
-      "Far har ungdomsuddannelse." = "Ungdomsuddannelse",
-      "Far har Kort videregående uddannelse (KVU)" = "Kort videregående",
-      "Far har Mellemlang videregående uddannelse (MVU)" = "Mellemlang videregående",
-      "Far har Lang videregående uddannelse (LVU)" = "Lang videregående"
+      "Ingen" = "Ingen ungdomsuddannelse",
+      "Ungdomsuddannelse." = "Ungdomsuddannelse",
+      "KortVidere" = "Kort videregående",
+      "MellemLang" = "Mellemlang videregående",
+      "Lang" = "Lang videregående"
     ))+
   theme_classic()+
   theme(text = element_text(size = 8))+
   coord_flip()
 ```
 
+Taget fra IFOR22 (Christiansø mangler, men er undtaget fra gennemsnittet, da det alligevel er en meget lille kommune)
+```{r}
+deciler_kommuner <- read_excel("Data/deciler_kommuner_2019.xlsx")
 
+kommune_landsdel_udenchristian <- kommune_landsdel %>% filter(Kommune!='Christiansø')
+
+deciler_landsdel_2019 <- deciler_kommuner %>% full_join(kommune_landsdel_udenchristian) %>% group_by(Landsdel) %>% summarise(Q10=mean(`1. decil`), Q50=mean(`5. decil`),Q90=mean(`9. decil`), Antal_kommuner=n())
+
+deciler_landsdel_2019
+```
+
+```{r}
+### ulighed for vestjylland og nordsjælland
+folketal_kommuner <- read_excel("Data/Kommune_folketal_2019.xlsx")
+folketal_kommuner <- folketal_kommuner %>% filter(Kommune!='Christiansø')
+
+kommune_landsdel_udenchristian <- kommune_landsdel %>% filter(Kommune!='Christiansø')
+```
+
+```{r}
+deciler_landsdel_2019_nordvest <- deciler_kommuner %>% full_join(kommune_landsdel_udenchristian) %>% group_by(Landsdel) %>% filter(Landsdel %in% c("Landsdel Nordsjælland","Landsdel Vestjylland")) %>% full_join(folketal_kommuner) 
+
+landsdel_folketal <- deciler_landsdel_2019_nordvest %>% group_by(Landsdel) %>% summarise(SamletAntal=sum(Antal), n=n())
+
+deciler_landsdel_2019_nordvest <- deciler_landsdel_2019_nordvest %>% full_join(landsdel_folketal) %>% select(!n) %>% mutate(prop=Antal/SamletAntal) %>% group_by(Landsdel) %>% summarise(Q10=sum(prop*`1. decil`),Q90=sum(prop*`9. decil`),Antal_kommuner=n())
+```
+
+```{r}
+deciler_landsdel_2019_nordvest <- deciler_landsdel_2019_nordvest %>% mutate(ulighed=Q90/Q10)
+
+deciler_landsdel_2019_nordvest
+```
+
+
+```{r}
+folketal_kommuner <- read_excel("Data/Kommune_folketal_2019.xlsx")
+folketal_kommuner <- folketal_kommuner %>% filter(Kommune!='Christiansø')
+
+deciler_landsdel_2019_helelandet <- deciler_kommuner %>% full_join(folketal_kommuner) %>% mutate(Land="Danmark")
+deciler_landsdel_2019_helelandet
+
+land_folketal <- deciler_landsdel_2019_helelandet %>% group_by(Land) %>% summarise(SamletAntal=sum(Antal), n=n())
+land_folketal
+
+deciler_landsdel_2019_helelandet <- deciler_landsdel_2019_helelandet %>% full_join(land_folketal) %>% select(!n) %>%  mutate(prop=Antal/SamletAntal) %>% group_by(Land) %>% summarise(Q10=sum(prop*`1. decil`),Q90=sum(prop*`9. decil`),Antal_kommuner=n())
+deciler_landsdel_2019_helelandet
+
+deciler_landsdel_2019_helelandet <- deciler_landsdel_2019_helelandet %>% mutate(ulighed=Q90/Q10) 
+deciler_landsdel_2019_helelandet
+```
+
+```{r}
+deciler_landsdel_2019_nordvest%>% mutate(Landsdel=fct_relevel(Landsdel,"Landsdel Nordsjælland","Landsdel Vestjylland")) %>% 
+  filter(Landsdel %in% c("Landsdel Nordsjælland","Landsdel Vestjylland")) %>% 
+  ggplot(aes(x=Landsdel, y=ulighed, fill=Landsdel)) +
+  geom_col(position = position_dodge2()) +
+  scale_fill_manual(values=cbbPalette[c(3,8)])+
+  ylab("Ulighed")+
+  xlab("Landsdel")+
+  scale_fill_manual(values=c("skyblue2","palegreen2"),name="Landsdel")+
+  theme_classic()+
+  geom_hline(aes(yintercept=3.212436),color="red")+
+  theme(text = element_text(size = 8))+
+  coord_flip()
+```
 
