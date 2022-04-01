@@ -107,7 +107,7 @@ plot_udd <- ggplot(ggplotdata2$geometry, aes(fill = ggplotdata2$udd_gns)) +
   scale_fill_gradient(low = 'grey94', high = 'deepskyblue2')
 
 plot_udd
-#ggsave("Data/uddgns.png", plot = plot_udd)
+ggsave("Data/uddgns.png", plot = plot_udd)
 ```
 
 ## Forskel i antal mænd og kvinder for landsdele
@@ -407,13 +407,24 @@ ggplot(ggplotdata_komm, aes(fill = `Gennemsnitsalder for førstegangsfødende kv
     legend.title = element_text(size = 8),
     legend.text = element_text(size = 8),
     legend.margin = margin(r=2),
-    legend.position = c(1.06, 0.55),
+    legend.position = c(1.075, 0.55),
     plot.margin = unit(c(0,3,0,0), 'cm')) + 
-  scale_fill_gradient()
+  scale_fill_gradient(low = 'grey98', high = 'deeppink3')
 ```
 ```{r}
 ggplot(ggplotdata_komm, aes(fill = `Gennemsnitsalder for førstegangs fædre`)) +
   geom_sf() + 
-  theme_void() 
+  theme_void() +
+  labs(fill = 'Gennemsnitsalder førstegangsforælder -\nfar\n') +
+  theme(
+    axis.text.x = element_blank(),
+    axis.text.y = element_blank(),
+    axis.ticks = element_blank(),
+    legend.title = element_text(size = 8),
+    legend.text = element_text(size = 8),
+    legend.margin = margin(r=2),
+    legend.position = c(1.075, 0.55),
+    plot.margin = unit(c(0,3,0,0), 'cm')) + 
+  scale_fill_gradient(low = 'grey98', high = 'royalblue')
 ```
 
