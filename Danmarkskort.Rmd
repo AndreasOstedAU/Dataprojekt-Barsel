@@ -53,12 +53,14 @@ I ggplotdata kan man godt lave om på rækkefølgen af rækkerne. Derfor har jeg
 ```{r}
 kommune_alder_børn <- read_excel("Data/kommune_alderbørn_2019.xlsx") %>% filter(!Kommune == 'Christiansø') 
 deciler_kommuner <- read_excel("Data/deciler_kommuner_2019.xlsx")
+mk_kommuner <- read_excel("Data/mænd_kvinder_kommune_2019.xlsx") %>% mutate(Relativ_forskel_mk = (Mænd-Kvinder)/(Mænd + Kvinder)*100) %>% select(Kommune, Relativ_forskel_mk)
 
 geodata_komm2 <- geodata_komm
 
-geodata_komm2@data <- geodata_komm2@data %>% 
-  as_tibble() %>% left_join(kommune_alder_børn, by = c("navn" = "Kommune")) %>% 
-  left_join(deciler_kommuner, by = c("navn" = "Kommune"))
+geodata_komm2@data <- geodata_komm2@data %>% as_tibble() %>% 
+  left_join(kommune_alder_børn, by = c("navn" = "Kommune")) %>% 
+  left_join(deciler_kommuner, by = c("navn" = "Kommune")) %>% 
+  left_join(mk_kommuner, by = c("navn" = "Kommune"))
 
 geodata_komm2@data
 ```
@@ -94,12 +96,18 @@ plot_udd <- ggplot(ggplotdata2$geometry, aes(fill = ggplotdata2$udd_gns)) +
   theme_void() +
   labs(fill = "Gennemsnitligt uddannelsesniveau \n(score)\n") +
   theme(
-  axis.text.x = element_blank(),
-  axis.text.y = element_blank(),
-  axis.ticks = element_blank())
+    axis.text.x = element_blank(),
+    axis.text.y = element_blank(),
+    axis.ticks = element_blank(),
+    legend.title = element_text(size = 8),
+    legend.text = element_text(size = 8),
+    legend.margin = margin(r=2),
+    legend.position = c(1.05, 0.55),
+    plot.margin = unit(c(0,2,0,0), 'cm')) +
+  scale_fill_gradient(low = 'grey94', high = 'deepskyblue2')
 
 plot_udd
-ggsave("Data/uddgns.png", plot = plot_udd)
+#ggsave("Data/uddgns.png", plot = plot_udd)
 ```
 
 ## Forskel i antal mænd og kvinder for landsdele
@@ -124,13 +132,39 @@ ggplot(ggplotdata2$geometry, aes(fill = ggplotdata2$Diff_køn_relativ)) +
   theme_void() +
   #scale_fill_viridis(option = "viridis", direction = 1, alpha = 0.75, begin = 0.15, end = 0.95) +
   #scale_fill_gradientn(colors = (cm.colors(100, rev = TRUE, alpha = 0.75)), limit = c(-2.75, 2.75)) +
-  scale_fill_gradient(low = 'violet', high = 'skyblue1',limit = c(-2.75, 2.75)) +
-  labs(fill = "Antal mænd - antal kvinder, \nforskel i procent") +
+  scale_fill_gradient(low = 'firebrick1', high = 'dodgerblue2',limit = c(-3, 3), labels = c('-3    (Flest kvinder)', '-2', '-1', '0', '1', '2', '3   (Flest mænd)')) +
+  labs(fill = "Antal mænd - antal kvinder, \nforskel i procent\n") +
   theme(
-  axis.text.x = element_blank(),
-  axis.text.y = element_blank(),
-  axis.ticks = element_blank())
+    axis.text.x = element_blank(),
+    axis.text.y = element_blank(),
+    axis.ticks = element_blank(),
+    legend.title = element_text(size = 8),
+    legend.text = element_text(size = 8),
+    legend.margin = margin(r=2),
+    legend.position = c(1.025, 0.55),
+    plot.margin = unit(c(0,2,0,0), 'cm'))
 ```
+## Forskel i antal mænd og kvinder for kommuner
+
+```{r}
+
+ggplot(ggplotdata_komm, aes(fill = Relativ_forskel_mk)) +
+  geom_sf() +
+  theme_void() +
+  scale_fill_gradient(low = 'firebrick1', high = 'dodgerblue2',limit = c(-5, 5), labels = c('-5    (Flest kvinder)', '-2.5', '0', '2.5', '5    (Flest mænd)')) +
+  labs(fill = "Antal mænd - antal kvinder, \nforskel i procent\n") +
+  theme(
+    axis.text.x = element_blank(),
+    axis.text.y = element_blank(),
+    axis.ticks = element_blank(),
+    legend.title = element_text(size = 8),
+    legend.text = element_text(size = 8),
+    legend.margin = margin(r=2),
+    legend.position = c(1.025, 0.55),
+    plot.margin = unit(c(0,2,0,0), 'cm'))
+
+```
+
 
 # Gennemsnitsindkomst landsdele
 
@@ -213,7 +247,18 @@ ggplot(ggplotdata_komm, aes(fill = `1. decil`)) +
 ```{r}
 ggplot(ggplotdata_komm, aes(fill = `5. decil`)) +
   geom_sf() +
-  theme_void()
+  theme_void() +
+  labs(fill = "Medianindkomst\n") +
+  theme(
+    axis.text.x = element_blank(),
+    axis.text.y = element_blank(),
+    axis.ticks = element_blank(),
+    legend.title = element_text(size = 8),
+    legend.text = element_text(size = 8),
+    legend.margin = margin(r=2),
+    legend.position = c(0.98, 0.55),
+    plot.margin = unit(c(0,2,0,0), 'cm')) +
+  scale_fill_gradient(low = 'grey93', high = 'orange')
 ```
 
 ```{r}
@@ -267,39 +312,54 @@ ggplotdata2
 ggplot(ggplotdata2$geometry, aes(fill = ggplotdata2$prop_i_brancher_nedre)) +
   geom_sf() +
   theme_void() +
-  labs(fill = "Andel i brancher med nedre 1/3 \ni gns. barselsdage") +
+  labs(fill = "Andel mænd i brancher med \nfærrest barselsdage\n") +
   scale_fill_viridis(option = "mako", direction = 1, alpha = 0.75, begin = 0.15, end = 0.95) +
   theme(
-  axis.text.x = element_blank(),
-  axis.text.y = element_blank(),
-  axis.ticks = element_blank())
+    axis.text.x = element_blank(),
+    axis.text.y = element_blank(),
+    axis.ticks = element_blank(),
+    legend.title = element_text(size = 8),
+    legend.text = element_text(size = 8),
+    legend.margin = margin(r=2),
+    legend.position = c(1.035, 0.55),
+    plot.margin = unit(c(0,2,0,0), 'cm'))
 ```
 
 ```{r}
 ggplot(ggplotdata2$geometry, aes(fill = ggplotdata2$prop_i_brancher_midte)) +
   geom_sf() +
   theme_void() +
-  labs(fill = "Andel i brancher med midterste 1/3 \ni gns. barselsdage") + 
+  labs(fill = "Andel mænd i brancher med \ngennemsnitligt antal barselsdage\n") + 
   scale_fill_viridis(option = "mako", direction = 1, alpha = 0.75, begin = 0.15, end = 0.95) +
   theme(
-  axis.text.x = element_blank(),
-  axis.text.y = element_blank(),
-  axis.ticks = element_blank())
+    axis.text.x = element_blank(),
+    axis.text.y = element_blank(),
+    axis.ticks = element_blank(),
+    legend.title = element_text(size = 8),
+    legend.text = element_text(size = 8),
+    legend.margin = margin(r=2),
+    legend.position = c(1.045, 0.55),
+    plot.margin = unit(c(0,2,0,0), 'cm'))
 ```
 
 ```{r}
 ggplot(ggplotdata2$geometry, aes(fill = ggplotdata2$prop_i_brancher_top)) +
   geom_sf() +
   theme_void() +
-  labs(fill = "Andel i brancher med øverste 1/3 \ni gns. barselsdage") + 
+  labs(fill = "Andel mænd i brancher med \nhøjt antal barselsdage\n") + 
   scale_fill_viridis(option = "mako", direction = 1, alpha = 0.75, begin = 0.15, end = 0.95) +
   theme(
-  axis.text.x = element_blank(),
-  axis.text.y = element_blank(),
-  axis.ticks = element_blank())
+    axis.text.x = element_blank(),
+    axis.text.y = element_blank(),
+    axis.ticks = element_blank(),
+    legend.title = element_text(size = 8),
+    legend.text = element_text(size = 8),
+    legend.margin = margin(r=2),
+    legend.position = c(1.035, 0.55),
+    plot.margin = unit(c(0,2,0,0), 'cm'))
 ```
 
-# Gennemsnitlig fødealder mænd og kvinder på lansdele
+# Gennemsnitlig fødealder mænd og kvinder på landsdele
 
 ```{r}
 fødealder_landsdel_2019 <- read_rds("Data/fødealder_landsdel_2019.rds")
@@ -338,7 +398,18 @@ ggplot(ggplotdata2$geometry, aes(fill = ggplotdata2$gns_førstefødte_far)) +
 ```{r}
 ggplot(ggplotdata_komm, aes(fill = `Gennemsnitsalder for førstegangsfødende kvinder`)) +
   geom_sf() + 
-  theme_void() 
+  theme_void() +
+  labs(fill = 'Gennemsnitsalder førstegangsfødende -\nkvinder\n') +
+  theme(
+    axis.text.x = element_blank(),
+    axis.text.y = element_blank(),
+    axis.ticks = element_blank(),
+    legend.title = element_text(size = 8),
+    legend.text = element_text(size = 8),
+    legend.margin = margin(r=2),
+    legend.position = c(1.06, 0.55),
+    plot.margin = unit(c(0,3,0,0), 'cm')) + 
+  scale_fill_gradient()
 ```
 ```{r}
 ggplot(ggplotdata_komm, aes(fill = `Gennemsnitsalder for førstegangs fædre`)) +
