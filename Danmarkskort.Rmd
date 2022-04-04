@@ -107,7 +107,7 @@ plot_udd <- ggplot(ggplotdata2$geometry, aes(fill = ggplotdata2$udd_gns)) +
   scale_fill_gradient(low = 'grey94', high = 'deepskyblue2')
 
 plot_udd
-ggsave("Data/uddgns.png", plot = plot_udd)
+ggsave("Plots/uddgns.png", plot = plot_udd)
 ```
 
 ## Forskel i antal mænd og kvinder for landsdele
@@ -127,7 +127,7 @@ ggplotdata2
 ```
 
 ```{r}
-ggplot(ggplotdata2$geometry, aes(fill = ggplotdata2$Diff_køn_relativ)) +
+plot_mk_land <- ggplot(ggplotdata2$geometry, aes(fill = ggplotdata2$Diff_køn_relativ)) +
   geom_sf() +
   theme_void() +
   #scale_fill_viridis(option = "viridis", direction = 1, alpha = 0.75, begin = 0.15, end = 0.95) +
@@ -143,12 +143,13 @@ ggplot(ggplotdata2$geometry, aes(fill = ggplotdata2$Diff_køn_relativ)) +
     legend.margin = margin(r=2),
     legend.position = c(1.025, 0.55),
     plot.margin = unit(c(0,2,0,0), 'cm'))
+plot_mk_land
+ggsave("Plots/mk_land.png", plot = plot_mk_land)
 ```
 ## Forskel i antal mænd og kvinder for kommuner
 
 ```{r}
-
-ggplot(ggplotdata_komm, aes(fill = Relativ_forskel_mk)) +
+plot_mk_komm <- ggplot(ggplotdata_komm, aes(fill = Relativ_forskel_mk)) +
   geom_sf() +
   theme_void() +
   scale_fill_gradient(low = 'firebrick1', high = 'dodgerblue2',limit = c(-5, 5), labels = c('-5    (Flest kvinder)', '-2.5', '0', '2.5', '5    (Flest mænd)')) +
@@ -162,7 +163,8 @@ ggplot(ggplotdata_komm, aes(fill = Relativ_forskel_mk)) +
     legend.margin = margin(r=2),
     legend.position = c(1.025, 0.55),
     plot.margin = unit(c(0,2,0,0), 'cm'))
-
+ggsave("Plots/mk_komm.png", plot = plot_mk_komm)
+plot_mk_komm
 ```
 
 
@@ -245,7 +247,7 @@ ggplot(ggplotdata_komm, aes(fill = `1. decil`)) +
 ```
 
 ```{r}
-ggplot(ggplotdata_komm, aes(fill = `5. decil`)) +
+plot_median_indk <- ggplot(ggplotdata_komm, aes(fill = `5. decil`)) +
   geom_sf() +
   theme_void() +
   labs(fill = "Medianindkomst\n") +
@@ -259,6 +261,8 @@ ggplot(ggplotdata_komm, aes(fill = `5. decil`)) +
     legend.position = c(0.98, 0.55),
     plot.margin = unit(c(0,2,0,0), 'cm')) +
   scale_fill_gradient(low = 'grey93', high = 'orange')
+ggsave("Plots/median_indk.png", plot = plot_median_indk)
+plot_median_indk
 ```
 
 ```{r}
@@ -309,7 +313,7 @@ ggplotdata2
 ```
 
 ```{r}
-ggplot(ggplotdata2$geometry, aes(fill = ggplotdata2$prop_i_brancher_nedre)) +
+plot_brancher_nedre <- ggplot(ggplotdata2$geometry, aes(fill = ggplotdata2$prop_i_brancher_nedre)) +
   geom_sf() +
   theme_void() +
   labs(fill = "Andel mænd i brancher med \nfærrest barselsdage\n") +
@@ -323,10 +327,12 @@ ggplot(ggplotdata2$geometry, aes(fill = ggplotdata2$prop_i_brancher_nedre)) +
     legend.margin = margin(r=2),
     legend.position = c(1.035, 0.55),
     plot.margin = unit(c(0,2,0,0), 'cm'))
+ggsave("Plots/brancher_nedre.png", plot = plot_brancher_nedre)
+plot_brancher_nedre
 ```
 
 ```{r}
-ggplot(ggplotdata2$geometry, aes(fill = ggplotdata2$prop_i_brancher_midte)) +
+plot_brancher_gns <- ggplot(ggplotdata2$geometry, aes(fill = ggplotdata2$prop_i_brancher_midte)) +
   geom_sf() +
   theme_void() +
   labs(fill = "Andel mænd i brancher med \ngennemsnitligt antal barselsdage\n") + 
@@ -340,10 +346,12 @@ ggplot(ggplotdata2$geometry, aes(fill = ggplotdata2$prop_i_brancher_midte)) +
     legend.margin = margin(r=2),
     legend.position = c(1.045, 0.55),
     plot.margin = unit(c(0,2,0,0), 'cm'))
+ggsave("Plots/brancher_gns.png", plot = plot_brancher_gns)
+plot_brancher_gns
 ```
 
 ```{r}
-ggplot(ggplotdata2$geometry, aes(fill = ggplotdata2$prop_i_brancher_top)) +
+plot_brancher_øvre <- ggplot(ggplotdata2$geometry, aes(fill = ggplotdata2$prop_i_brancher_top)) +
   geom_sf() +
   theme_void() +
   labs(fill = "Andel mænd i brancher med \nhøjt antal barselsdage\n") + 
@@ -357,6 +365,8 @@ ggplot(ggplotdata2$geometry, aes(fill = ggplotdata2$prop_i_brancher_top)) +
     legend.margin = margin(r=2),
     legend.position = c(1.035, 0.55),
     plot.margin = unit(c(0,2,0,0), 'cm'))
+ggsave("Plots/brancher_øvre.png", plot = plot_brancher_øvre)
+plot_brancher_øvre
 ```
 
 # Gennemsnitlig fødealder mænd og kvinder på landsdele
@@ -396,7 +406,7 @@ ggplot(ggplotdata2$geometry, aes(fill = ggplotdata2$gns_førstefødte_far)) +
 ## Gennemsnitlig fødealder mænd og kvinder, kommuner (FOD111):
 
 ```{r}
-ggplot(ggplotdata_komm, aes(fill = `Gennemsnitsalder for førstegangsfødende kvinder`)) +
+plot_alder_k <- ggplot(ggplotdata_komm, aes(fill = `Gennemsnitsalder for førstegangsfødende kvinder`)) +
   geom_sf() + 
   theme_void() +
   labs(fill = 'Gennemsnitsalder førstegangsfødende -\nkvinder\n') +
@@ -410,9 +420,11 @@ ggplot(ggplotdata_komm, aes(fill = `Gennemsnitsalder for førstegangsfødende kv
     legend.position = c(1.075, 0.55),
     plot.margin = unit(c(0,3,0,0), 'cm')) + 
   scale_fill_gradient(low = 'grey98', high = 'deeppink3')
+ggsave("Plots/alder_k.png", plot = plot_alder_k)
+plot_alder_k
 ```
 ```{r}
-ggplot(ggplotdata_komm, aes(fill = `Gennemsnitsalder for førstegangs fædre`)) +
+plot_alder_m <- ggplot(ggplotdata_komm, aes(fill = `Gennemsnitsalder for førstegangs fædre`)) +
   geom_sf() + 
   theme_void() +
   labs(fill = 'Gennemsnitsalder førstegangsforælder -\nfar\n') +
@@ -425,6 +437,8 @@ ggplot(ggplotdata_komm, aes(fill = `Gennemsnitsalder for førstegangs fædre`)) 
     legend.margin = margin(r=2),
     legend.position = c(1.075, 0.55),
     plot.margin = unit(c(0,3,0,0), 'cm')) + 
-  scale_fill_gradient(low = 'grey98', high = 'royalblue')
+  scale_fill_gradient(low = 'grey96', high = 'dodgerblue4')
+ggsave("Plots/alder_m.png", plot = plot_alder_m)
+plot_alder_m
 ```
 

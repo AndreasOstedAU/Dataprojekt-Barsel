@@ -44,6 +44,16 @@ summary(LM_no_interaction_far)
 anova(LM_interaction_far, LM_no_interaction_far)
 ```
 
+```{r}
+barsel_vj_nsj <- barsel04_far %>% filter(TID == 2019) %>% filter(OMRÅDE %in% c("Landsdel Vestjylland", "Landsdel Nordsjælland"))
+barsel_vj_nsj
+```
+
+```{r}
+pred <- predict(LM_interaction_far, newdata = barsel_vj_nsj)
+pred
+barsel_vj_nsj %>% mutate(Predikteret = pred) %>% mutate(Forskel = INDHOLD - Predikteret) %>% arrange(Forskel)
+```
 
 ## Far model med uddannelsesscore
 ```{r}
@@ -55,6 +65,9 @@ barsel04_far_2019_udd_gns
 lm_gns <- lm(data = barsel04_far_2019_udd_gns, INDHOLD ~ UDDKOMB + gns)
 summary(lm_gns)
 ```
+
+
+
 
 
 ```{r}
