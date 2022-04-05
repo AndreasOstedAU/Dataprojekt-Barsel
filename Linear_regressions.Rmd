@@ -28,7 +28,7 @@ barsel04_far <- barsel04_big %>% filter(TAL %in% "Far - barselsdagpengedage i ge
                                 select(UDDKOMB, OMRÅDE, TID, INDHOLD) %>% 
                                 arrange(OMRÅDE, TID) %>% 
                                 mutate(INDHOLD = parse_number(INDHOLD, locale = locale(decimal_mark = ",")),
-                                       TID = factor(TID))
+                                       TID = TID-2015)
 barsel04_far
 ```
 

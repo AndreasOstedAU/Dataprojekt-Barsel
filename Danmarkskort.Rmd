@@ -88,6 +88,38 @@ ggplot(ggplotdata2$geometry, aes(fill = ggplotdata2$navn)) +
   theme_minimal() +
   labs(fill = "Landsdel")
 ```
+```{r}
+barsel04_gns <- barsel04_big %>% filter(TAL %in% "Far - barselsdagpengedage i gennemsnit", 
+                                        ORLOV1 %in% "Alle forældrepar, uanset deling af orlov",
+                                        grepl(UDDKOMB, pattern = "Far"), #uddannelseskombinationer som kun indeholder far
+                                        grepl("Landsdel", OMRÅDE)) %>% 
+                                mutate(INDHOLD = parse_number(INDHOLD, locale = locale(decimal_mark = ",")),
+                                       TID = factor(TID), OMRÅDE = str_remove_all(string = OMRÅDE, pattern = "Landsdel")) %>% group_by(OMRÅDE) %>% summarise(gns = mean(INDHOLD)) %>% arrange(desc(OMRÅDE))
+barsel04_gns
+```
+```{r}
+ggplotdata2 <- ggplotdata2 %>% mutate(gns_dage_land = barsel04_gns$gns)
+ggplotdata2
+```
+```{r}
+plot_dage <- ggplot(ggplotdata2$geometry, aes(fill = ggplotdata2$gns_dage_land)) +
+  geom_sf() +
+  theme_void() +
+  labs(fill = "Gennemsnitligt antal barselsdage\n") +
+  theme(
+    axis.text.x = element_blank(),
+    axis.text.y = element_blank(),
+    axis.ticks = element_blank(),
+    legend.title = element_text(size = 8),
+    legend.text = element_text(size = 8),
+    legend.margin = margin(r=2),
+    legend.position = c(1.05, 0.55),
+    plot.margin = unit(c(0,2,0,0), 'cm')) +
+  scale_fill_gradient(low = 'grey94', high = 'navyblue')
+
+plot_dage
+```
+
 
 
 ```{r}
@@ -107,7 +139,7 @@ plot_udd <- ggplot(ggplotdata2$geometry, aes(fill = ggplotdata2$udd_gns)) +
   scale_fill_gradient(low = 'grey94', high = 'deepskyblue2')
 
 plot_udd
-ggsave("Plots/uddgns.png", plot = plot_udd)
+#ggsave("Plots/uddgns.png", plot = plot_udd)
 ```
 
 ## Forskel i antal mænd og kvinder for landsdele
@@ -132,7 +164,7 @@ plot_mk_land <- ggplot(ggplotdata2$geometry, aes(fill = ggplotdata2$Diff_køn_re
   theme_void() +
   #scale_fill_viridis(option = "viridis", direction = 1, alpha = 0.75, begin = 0.15, end = 0.95) +
   #scale_fill_gradientn(colors = (cm.colors(100, rev = TRUE, alpha = 0.75)), limit = c(-2.75, 2.75)) +
-  scale_fill_gradient(low = 'firebrick1', high = 'dodgerblue2',limit = c(-3, 3), labels = c('-3    (Flest kvinder)', '-2', '-1', '0', '1', '2', '3   (Flest mænd)')) +
+  scale_fill_gradient2(low = 'firebrick1', mid = 'grey93', high = 'dodgerblue2',limit = c(-3, 3), labels = c('-3    (Flest kvinder)', '-2', '-1', '0', '1', '2', '3   (Flest mænd)')) +
   labs(fill = "Antal mænd - antal kvinder, \nforskel i procent\n") +
   theme(
     axis.text.x = element_blank(),
@@ -144,7 +176,7 @@ plot_mk_land <- ggplot(ggplotdata2$geometry, aes(fill = ggplotdata2$Diff_køn_re
     legend.position = c(1.025, 0.55),
     plot.margin = unit(c(0,2,0,0), 'cm'))
 plot_mk_land
-ggsave("Plots/mk_land.png", plot = plot_mk_land)
+#ggsave("Plots/mk_land.png", plot = plot_mk_land)
 ```
 ## Forskel i antal mænd og kvinder for kommuner
 
@@ -152,7 +184,7 @@ ggsave("Plots/mk_land.png", plot = plot_mk_land)
 plot_mk_komm <- ggplot(ggplotdata_komm, aes(fill = Relativ_forskel_mk)) +
   geom_sf() +
   theme_void() +
-  scale_fill_gradient(low = 'firebrick1', high = 'dodgerblue2',limit = c(-5, 5), labels = c('-5    (Flest kvinder)', '-2.5', '0', '2.5', '5    (Flest mænd)')) +
+  scale_fill_gradient2(low = 'firebrick1', mid = 'grey93', high = 'dodgerblue2',limit = c(-5, 5), labels = c('-5    (Flest kvinder)', '-2.5', '0', '2.5', '5    (Flest mænd)')) +
   labs(fill = "Antal mænd - antal kvinder, \nforskel i procent\n") +
   theme(
     axis.text.x = element_blank(),
@@ -163,7 +195,7 @@ plot_mk_komm <- ggplot(ggplotdata_komm, aes(fill = Relativ_forskel_mk)) +
     legend.margin = margin(r=2),
     legend.position = c(1.025, 0.55),
     plot.margin = unit(c(0,2,0,0), 'cm'))
-ggsave("Plots/mk_komm.png", plot = plot_mk_komm)
+#ggsave("Plots/mk_komm.png", plot = plot_mk_komm)
 plot_mk_komm
 ```
 
@@ -276,6 +308,7 @@ ggplot(ggplotdata_komm, aes(fill = `9. decil`)) +
 
 
 # Brancher fordelinger (se Linear_regressions.Rmd) (LIGEAB4)
+Lav evt. også på kommuneniveau
 
 Nedre 1/3 
 ```{r}
@@ -317,7 +350,8 @@ plot_brancher_nedre <- ggplot(ggplotdata2$geometry, aes(fill = ggplotdata2$prop_
   geom_sf() +
   theme_void() +
   labs(fill = "Andel mænd i brancher med \nfærrest barselsdage\n") +
-  scale_fill_viridis(option = "mako", direction = 1, alpha = 0.75, begin = 0.15, end = 0.95) +
+  #scale_fill_viridis(option = "mako", direction = 1, alpha = 0.75, begin = 0.15, end = 0.95) +
+  scale_fill_gradient(low = 'grey98', high = 'aquamarine4')
   theme(
     axis.text.x = element_blank(),
     axis.text.y = element_blank(),
@@ -327,7 +361,7 @@ plot_brancher_nedre <- ggplot(ggplotdata2$geometry, aes(fill = ggplotdata2$prop_
     legend.margin = margin(r=2),
     legend.position = c(1.035, 0.55),
     plot.margin = unit(c(0,2,0,0), 'cm'))
-ggsave("Plots/brancher_nedre.png", plot = plot_brancher_nedre)
+#ggsave("Plots/brancher_nedre.png", plot = plot_brancher_nedre)
 plot_brancher_nedre
 ```
 
