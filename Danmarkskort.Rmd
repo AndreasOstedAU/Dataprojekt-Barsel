@@ -88,24 +88,33 @@ ggplot(ggplotdata2$geometry, aes(fill = ggplotdata2$navn)) +
   theme_minimal() +
   labs(fill = "Landsdel")
 ```
+
+
+## Gns. antal barselsdage for mænd, alle forældrepar uanset uddannelse:
 ```{r}
 barsel04_gns <- barsel04_big %>% filter(TAL %in% "Far - barselsdagpengedage i gennemsnit", 
                                         ORLOV1 %in% "Alle forældrepar, uanset deling af orlov",
-                                        grepl(UDDKOMB, pattern = "Far"), #uddannelseskombinationer som kun indeholder far
-                                        grepl("Landsdel", OMRÅDE)) %>% 
+                                        !OMRÅDE == 'Hele landet',
+                                        DAGPENGERET == 'Både mor og far er berettigede til barselsdagpenge',
+                                        UDDKOMB == 'Alle forældrepar, uanset uddannelse',
+                                        TID == 2019,
+                                        INDHOLD != '..') %>% 
                                 mutate(INDHOLD = parse_number(INDHOLD, locale = locale(decimal_mark = ",")),
-                                       TID = factor(TID), OMRÅDE = str_remove_all(string = OMRÅDE, pattern = "Landsdel")) %>% group_by(OMRÅDE) %>% summarise(gns = mean(INDHOLD)) %>% arrange(desc(OMRÅDE))
+                                       OMRÅDE = str_remove_all(string = OMRÅDE, pattern = "Landsdel")) %>% 
+                                arrange(desc(OMRÅDE))
 barsel04_gns
 ```
+
 ```{r}
-ggplotdata2 <- ggplotdata2 %>% mutate(gns_dage_land = barsel04_gns$gns)
+ggplotdata2 <- ggplotdata2 %>% mutate(gns_dage_land = barsel04_gns$INDHOLD)
 ggplotdata2
 ```
+
 ```{r}
 plot_dage <- ggplot(ggplotdata2$geometry, aes(fill = ggplotdata2$gns_dage_land)) +
   geom_sf() +
   theme_void() +
-  labs(fill = "Gennemsnitligt antal barselsdage\n") +
+  labs(fill = "Gennemsnitligt antal barselsdage - far\n") +
   theme(
     axis.text.x = element_blank(),
     axis.text.y = element_blank(),
@@ -115,8 +124,8 @@ plot_dage <- ggplot(ggplotdata2$geometry, aes(fill = ggplotdata2$gns_dage_land))
     legend.margin = margin(r=2),
     legend.position = c(1.05, 0.55),
     plot.margin = unit(c(0,2,0,0), 'cm')) +
-  scale_fill_gradient(low = 'grey94', high = 'navyblue')
-
+  scale_fill_gradient(low = 'grey94', high = 'dodgerblue4')
+#ggsave("Plots/Far_dage_gns.png", plot = plot_dage)
 plot_dage
 ```
 
