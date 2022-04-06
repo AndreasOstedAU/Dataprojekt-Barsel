@@ -1,0 +1,90 @@
+---
+author: "Palle Villesen"
+output: 
+  html_document:
+    code_folding: show
+    theme: cosmo
+    toc: yes
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r}
+library(tidyverse)
+library(cowplot)
+library(ggsci)
+
+options(digits = 3)        # number of digits printed by R default (vectors, data.frames, lists)
+options(pillar.sigfig = 3) # number of digits printed by tibbles default.
+
+text_base_size   <- 8    # in pt
+fig.witdh        <- 180  # in mm
+fig.height       <- 125  # in mm
+
+# Set all text in plots to same size
+theme_set(theme_cowplot(font_size = 8, rel_small = 1, rel_tiny = 1, rel_large = 1))
+# Setting output sizes for plots
+knitr::opts_chunk$set(fig.width = fig.witdh/25.4)
+knitr::opts_chunk$set(fig.height = fig.height/25.4)
+knitr::opts_chunk$set(dpi = 108) # You need to find your minotors dpi yourself.
+
+# Setting text size inside plots (geom_text, geom_label etc.)
+ggplot_text_size <- text_base_size / ggplot2::.pt
+# Now use: geom_text(..., size = ggplot_text_size)
+
+# For saving plots!
+# Use: ggsave(plot1, filename="myplot.png", width = fig.witdh, height=fig.height, units = "mm")
+# Use: ggsave(plot1, filename="myplot.pdf", width = fig.witdh, height=fig.height, units = "mm")
+
+# Set locale if you want danish month names etc.
+Sys.setlocale(locale = "Danish_Denmark")  # For danish axes on plot
+#Sys.setlocale(locale = "English_Denmark") # For english axes on plot
+
+# Changing default ggplot colours
+# see ?scale_fill_continuous
+options(ggplot2.continuous.fill  = scale_fill_viridis_c)    
+options(ggplot2.discrete.fill    = list(ggsci::pal_locuszoom()(7)) )
+options(ggplot2.continuous.colour = scale_colour_viridis_c)
+options(ggplot2.discrete.colour   = list(ggsci::pal_locuszoom()(7)))
+
+```
+
+# Example
+
+```{r}
+
+library(lubridate)
+
+df <- tibble(date = seq(from=ymd("2020-01-01"), to=ymd("2022-01-01"), by=1)) %>%
+  mutate(value = rnorm(n=n()),
+         group = sample(c("A","B","C", "D","E"), size = n(), replace=T))
+
+ggplot(df, aes(x=value,fill=group)) + geom_histogram()
+
+ggplot(df, aes(x=date,y=value, color=group)) + geom_point()
+
+ggplot(df, aes(x=date,y=value, color=value)) + geom_point()
+
+ggplot(df, aes(x=date,y=value, color=value)) + geom_text(aes(label=group), size = ggplot_text_size)
+
+# If you ask for more colors than you have specified - it will use default ggplot
+
+pd <- df %>% 
+  mutate(group=sample(1:7, replace=T, size = n())) %>%
+  mutate(group=factor(group))
+
+ggplot(pd, aes(x=date,y=value, color=group)) + 
+  geom_point() +
+  scale_x_date(date_breaks = "3 months", date_labels = "%B")
+
+# If we change the locale - we will change the axis labels (month names)
+
+Sys.setlocale(locale = "English_Denmark") # For english axes on plot
+
+ggplot(pd, aes(x=date,y=value, color=group)) + 
+  geom_point() +
+  scale_x_date(date_breaks = "3 months", date_labels = "%B")
+
+
+```
+
