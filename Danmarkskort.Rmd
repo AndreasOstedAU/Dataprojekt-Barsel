@@ -10,8 +10,48 @@ library(tidyverse)
 library(sf)
 library(rgdal)
 library(readxl)
-library(viridis)
+library(cowplot)
+
+theme_set(theme_void(base_size = 8))
 ```
+
+
+```{r}
+align_legend <- function(p, hjust = 1)
+{
+  # extract legend
+  g <- cowplot::plot_to_gtable(p)
+  grobs <- g$grobs
+  legend_index <- which(sapply(grobs, function(x) x$name) == "guide-box")
+  legend <- grobs[[legend_index]]
+
+  # extract guides table
+  guides_index <- which(sapply(legend$grobs, function(x) x$name) == "layout")
+
+  # there can be multiple guides within one legend box  
+  for (gi in guides_index) {
+    guides <- legend$grobs[[gi]]
+
+    # add extra column for spacing
+    # guides$width[5] is the extra spacing from the end of the legend text
+    # to the end of the legend title. If we instead distribute it by `hjust:(1-hjust)` on
+    # both sides, we get an aligned legend
+    spacing <- guides$width[5]
+    guides <- gtable::gtable_add_cols(guides, hjust*spacing, 1)
+    guides$widths[6] <- (1-hjust)*spacing
+    title_index <- guides$layout$name == "title"
+    guides$layout$l[title_index] <- 2
+
+    # reconstruct guides and write back
+    legend$grobs[[gi]] <- guides
+  }
+
+  # reconstruct legend and write back
+  g$grobs[[legend_index]] <- legend
+  g
+}
+```
+
 
 Fra https://www.linkedin.com/pulse/easy-maps-denmark-r-mikkel-freltoft-krogsholm/
 
@@ -92,6 +132,7 @@ ggplot(ggplotdata2$geometry, aes(fill = ggplotdata2$navn)) +
 
 ## Gns. antal barselsdage for mænd, alle forældrepar uanset uddannelse:
 ```{r}
+barsel04_big <- read_rds("Data/barsel04.rds")
 barsel04_gns <- barsel04_big %>% filter(TAL %in% "Far - barselsdagpengedage i gennemsnit", 
                                         ORLOV1 %in% "Alle forældrepar, uanset deling af orlov",
                                         !OMRÅDE == 'Hele landet',
@@ -112,20 +153,15 @@ ggplotdata2
 
 ```{r}
 plot_dage <- ggplot(ggplotdata2$geometry, aes(fill = ggplotdata2$gns_dage_land)) +
-  geom_sf() +
-  theme_void() +
+  geom_sf() + 
   labs(fill = "Gennemsnitligt antal barselsdage - far\n") +
   theme(
-    axis.text.x = element_blank(),
-    axis.text.y = element_blank(),
-    axis.ticks = element_blank(),
-    legend.title = element_text(size = 8),
-    legend.text = element_text(size = 8),
-    legend.margin = margin(r=2),
-    legend.position = c(1.05, 0.55),
-    plot.margin = unit(c(0,2,0,0), 'cm')) +
-  scale_fill_gradient(low = 'grey94', high = 'dodgerblue4')
-#ggsave("Plots/Far_dage_gns.png", plot = plot_dage)
+    legend.position = c(0.81, 0.55)) +
+  scale_fill_gradient(low = 'grey94', high = 'dodgerblue4') +
+  guides(fill = guide_colorbar(label.position = 'left'))
+  
+plot_dage <- ggdraw(align_legend(plot_dage, hjust = 0.91))
+ggsave("Plots/Far_dage_gns2.png", plot = plot_dage)
 plot_dage
 ```
 
@@ -134,21 +170,19 @@ plot_dage
 ```{r}
 plot_udd <- ggplot(ggplotdata2$geometry, aes(fill = ggplotdata2$udd_gns)) +
   geom_sf() +
-  theme_void() +
-  labs(fill = "Gennemsnitligt uddannelsesniveau \n(score)\n") +
+  labs(fill = "Gennemsnitligt uddannelsesniveau\n(score)\n") +
   theme(
-    axis.text.x = element_blank(),
-    axis.text.y = element_blank(),
-    axis.ticks = element_blank(),
-    legend.title = element_text(size = 8),
-    legend.text = element_text(size = 8),
-    legend.margin = margin(r=2),
-    legend.position = c(1.05, 0.55),
-    plot.margin = unit(c(0,2,0,0), 'cm')) +
-  scale_fill_gradient(low = 'grey94', high = 'deepskyblue2')
+    legend.position = c(0.81, 0.55),
+    legend.title.align = 1) +
+  scale_fill_gradient(low = 'grey94', high = 'deepskyblue2') +
+  guides(fill = guide_colorbar(label.position = 'left'))
 
-plot_udd
+#plot_udd
 #ggsave("Plots/uddgns.png", plot = plot_udd)
+
+plot_udd <- ggdraw(align_legend(plot_udd, hjust = 0.95))
+ggsave("Plots/uddgns2.png", plot = plot_udd)
+plot_udd
 ```
 
 ## Forskel i antal mænd og kvinder for landsdele
@@ -170,41 +204,36 @@ ggplotdata2
 ```{r}
 plot_mk_land <- ggplot(ggplotdata2$geometry, aes(fill = ggplotdata2$Diff_køn_relativ)) +
   geom_sf() +
-  theme_void() +
-  #scale_fill_viridis(option = "viridis", direction = 1, alpha = 0.75, begin = 0.15, end = 0.95) +
-  #scale_fill_gradientn(colors = (cm.colors(100, rev = TRUE, alpha = 0.75)), limit = c(-2.75, 2.75)) +
-  scale_fill_gradient2(low = 'firebrick1', mid = 'grey93', high = 'dodgerblue2',limit = c(-3, 3), labels = c('-3    (Flest kvinder)', '-2', '-1', '0', '1', '2', '3   (Flest mænd)')) +
-  labs(fill = "Antal mænd - antal kvinder, \nforskel i procent\n") +
+  scale_fill_gradient2(low = 'firebrick1', mid = 'grey93', high = 'dodgerblue2',
+                       limit = c(-3,3), 
+                       labels = c('-3   (Flest kvinder)', '-2', '-1', '0', '1', '2', '3   (Flest mænd')) +
+  labs(fill = "Antal mænd - antal kvinder,\nforskel i procent\n") +
   theme(
-    axis.text.x = element_blank(),
-    axis.text.y = element_blank(),
-    axis.ticks = element_blank(),
-    legend.title = element_text(size = 8),
-    legend.text = element_text(size = 8),
-    legend.margin = margin(r=2),
-    legend.position = c(1.025, 0.55),
-    plot.margin = unit(c(0,2,0,0), 'cm'))
-plot_mk_land
+    legend.position = c(0.97, 0.55)) 
+  #+ guides(fill = guide_colorbar(label.position = 'left'))
+#plot_mk_land
 #ggsave("Plots/mk_land.png", plot = plot_mk_land)
+
+plot_mk_land <- ggdraw(align_legend(plot_mk_land, hjust = 0.85))
+ggsave("Plots/mk_land2.png", plot = plot_mk_land)
+plot_mk_land
 ```
 ## Forskel i antal mænd og kvinder for kommuner
 
 ```{r}
 plot_mk_komm <- ggplot(ggplotdata_komm, aes(fill = Relativ_forskel_mk)) +
   geom_sf() +
-  theme_void() +
-  scale_fill_gradient2(low = 'firebrick1', mid = 'grey93', high = 'dodgerblue2',limit = c(-5, 5), labels = c('-5    (Flest kvinder)', '-2.5', '0', '2.5', '5    (Flest mænd)')) +
+  scale_fill_gradient2(low = 'firebrick1', mid = 'grey93', high = 'dodgerblue2',
+                       limit = c(-5, 5), 
+                       labels = c('-5  (Flest kvinder)', '-2.5', '0', '2.5', '5  (Flest mænd)')) +
   labs(fill = "Antal mænd - antal kvinder, \nforskel i procent\n") +
   theme(
-    axis.text.x = element_blank(),
-    axis.text.y = element_blank(),
-    axis.ticks = element_blank(),
-    legend.title = element_text(size = 8),
-    legend.text = element_text(size = 8),
-    legend.margin = margin(r=2),
-    legend.position = c(1.025, 0.55),
-    plot.margin = unit(c(0,2,0,0), 'cm'))
+    legend.position = c(0.97, 0.55))
 #ggsave("Plots/mk_komm.png", plot = plot_mk_komm)
+#plot_mk_komm
+
+plot_mk_komm <- ggdraw(align_legend(plot_mk_komm, hjust = 0.85))
+ggsave("Plots/mk_komm2.png", plot = plot_mk_komm)
 plot_mk_komm
 ```
 
@@ -290,19 +319,17 @@ ggplot(ggplotdata_komm, aes(fill = `1. decil`)) +
 ```{r}
 plot_median_indk <- ggplot(ggplotdata_komm, aes(fill = `5. decil`)) +
   geom_sf() +
-  theme_void() +
   labs(fill = "Medianindkomst\n") +
   theme(
-    axis.text.x = element_blank(),
-    axis.text.y = element_blank(),
-    axis.ticks = element_blank(),
-    legend.title = element_text(size = 8),
-    legend.text = element_text(size = 8),
-    legend.margin = margin(r=2),
-    legend.position = c(0.98, 0.55),
-    plot.margin = unit(c(0,2,0,0), 'cm')) +
-  scale_fill_gradient(low = 'grey93', high = 'orange')
-ggsave("Plots/median_indk.png", plot = plot_median_indk)
+    legend.position = c(0.895, 0.55)) +
+  scale_fill_gradient(low = 'grey93', high = 'orange') + 
+  guides(fill = guide_colorbar(label.position = 'left'))
+
+#ggsave("Plots/median_indk.png", plot = plot_median_indk)
+#plot_median_indk
+
+plot_median_indk <- ggdraw(align_legend(plot_median_indk, hjust = 0.75))
+ggsave("Plots/median_indk2.png", plot = plot_median_indk)
 plot_median_indk
 ```
 
@@ -357,58 +384,52 @@ ggplotdata2
 ```{r}
 plot_brancher_nedre <- ggplot(ggplotdata2$geometry, aes(fill = ggplotdata2$prop_i_brancher_nedre)) +
   geom_sf() +
-  theme_void() +
-  labs(fill = "Andel mænd i brancher med \nfærrest barselsdage\n") +
-  #scale_fill_viridis(option = "mako", direction = 1, alpha = 0.75, begin = 0.15, end = 0.95) +
-  scale_fill_gradient(low = 'grey98', high = 'aquamarine4')
+  labs(fill = "Andel mænd i brancher med\nfærrest antal barselsdage\n") +
+  scale_fill_gradient(low = 'grey98', high = 'aquamarine4') +
   theme(
-    axis.text.x = element_blank(),
-    axis.text.y = element_blank(),
-    axis.ticks = element_blank(),
-    legend.title = element_text(size = 8),
-    legend.text = element_text(size = 8),
-    legend.margin = margin(r=2),
-    legend.position = c(1.035, 0.55),
-    plot.margin = unit(c(0,2,0,0), 'cm'))
+    legend.position = c(0.845, 0.55),
+    legend.title.align = 1) +
+  guides(fill = guide_colorbar(label.position = 'left'))
+  
 #ggsave("Plots/brancher_nedre.png", plot = plot_brancher_nedre)
+#plot_brancher_nedre
+
+plot_brancher_nedre <- ggdraw(align_legend(plot_brancher_nedre, hjust = 0.92))
+ggsave("Plots/brancher_nedre2.png", plot = plot_brancher_nedre)
 plot_brancher_nedre
 ```
 
 ```{r}
 plot_brancher_gns <- ggplot(ggplotdata2$geometry, aes(fill = ggplotdata2$prop_i_brancher_midte)) +
   geom_sf() +
-  theme_void() +
-  labs(fill = "Andel mænd i brancher med \ngennemsnitligt antal barselsdage\n") + 
-  scale_fill_viridis(option = "mako", direction = 1, alpha = 0.75, begin = 0.15, end = 0.95) +
+  labs(fill = "Andel mænd i brancher med\ngennemsnitligt antal barselsdage\n") + 
+  scale_fill_gradient(low = 'grey98', high = 'aquamarine4') +
   theme(
-    axis.text.x = element_blank(),
-    axis.text.y = element_blank(),
-    axis.ticks = element_blank(),
-    legend.title = element_text(size = 8),
-    legend.text = element_text(size = 8),
-    legend.margin = margin(r=2),
-    legend.position = c(1.045, 0.55),
-    plot.margin = unit(c(0,2,0,0), 'cm'))
-ggsave("Plots/brancher_gns.png", plot = plot_brancher_gns)
+    legend.position = c(0.82, 0.55),
+    legend.title.align = 1) +
+  guides(fill = guide_colorbar(label.position = 'left'))
+#ggsave("Plots/brancher_gns.png", plot = plot_brancher_gns)
+#plot_brancher_gns
+
+plot_brancher_gns <- ggdraw(align_legend(plot_brancher_gns, hjust = 0.95))
+ggsave("Plots/brancher_gns2.png", plot = plot_brancher_gns)
 plot_brancher_gns
 ```
 
 ```{r}
 plot_brancher_øvre <- ggplot(ggplotdata2$geometry, aes(fill = ggplotdata2$prop_i_brancher_top)) +
   geom_sf() +
-  theme_void() +
-  labs(fill = "Andel mænd i brancher med \nhøjt antal barselsdage\n") + 
-  scale_fill_viridis(option = "mako", direction = 1, alpha = 0.75, begin = 0.15, end = 0.95) +
+  labs(fill = "Andel mænd i brancher med\nhøjt antal barselsdage\n") + 
+  scale_fill_gradient(low = 'grey98', high = 'aquamarine4') +
   theme(
-    axis.text.x = element_blank(),
-    axis.text.y = element_blank(),
-    axis.ticks = element_blank(),
-    legend.title = element_text(size = 8),
-    legend.text = element_text(size = 8),
-    legend.margin = margin(r=2),
-    legend.position = c(1.035, 0.55),
-    plot.margin = unit(c(0,2,0,0), 'cm'))
-ggsave("Plots/brancher_øvre.png", plot = plot_brancher_øvre)
+    legend.position = c(0.845, 0.55),
+    legend.title.align = 1) +
+  guides(fill = guide_colorbar(label.position = 'left'))
+#ggsave("Plots/brancher_øvre.png", plot = plot_brancher_øvre)
+#plot_brancher_øvre
+
+plot_brancher_øvre <- ggdraw(align_legend(plot_brancher_øvre, hjust = 0.92))
+ggsave("Plots/brancher_øvre2.png", plot = plot_brancher_øvre)
 plot_brancher_øvre
 ```
 
@@ -451,37 +472,31 @@ ggplot(ggplotdata2$geometry, aes(fill = ggplotdata2$gns_førstefødte_far)) +
 ```{r}
 plot_alder_k <- ggplot(ggplotdata_komm, aes(fill = `Gennemsnitsalder for førstegangsfødende kvinder`)) +
   geom_sf() + 
-  theme_void() +
-  labs(fill = 'Gennemsnitsalder førstegangsfødende -\nkvinder\n') +
+  labs(fill = 'Gennemsnitsalder førstegangsforælder - mor\n') +
   theme(
-    axis.text.x = element_blank(),
-    axis.text.y = element_blank(),
-    axis.ticks = element_blank(),
-    legend.title = element_text(size = 8),
-    legend.text = element_text(size = 8),
-    legend.margin = margin(r=2),
-    legend.position = c(1.075, 0.55),
-    plot.margin = unit(c(0,3,0,0), 'cm')) + 
-  scale_fill_gradient(low = 'grey98', high = 'deeppink3')
-ggsave("Plots/alder_k.png", plot = plot_alder_k)
+    legend.position = c(0.785, 0.55)) + 
+  scale_fill_gradient(low = 'grey98', high = 'deeppink3') +
+  guides(fill = guide_colorbar(label.position = 'left'))
+#ggsave("Plots/alder_k.png", plot = plot_alder_k)
+#plot_alder_k
+
+plot_alder_k <- ggdraw(align_legend(plot_alder_k, hjust = 0.92))
+ggsave("Plots/alder_k2.png", plot = plot_alder_k)
 plot_alder_k
 ```
 ```{r}
 plot_alder_m <- ggplot(ggplotdata_komm, aes(fill = `Gennemsnitsalder for førstegangs fædre`)) +
   geom_sf() + 
-  theme_void() +
-  labs(fill = 'Gennemsnitsalder førstegangsforælder -\nfar\n') +
+  labs(fill = 'Gennemsnitsalder førstegangsforælder - far\n') +
   theme(
-    axis.text.x = element_blank(),
-    axis.text.y = element_blank(),
-    axis.ticks = element_blank(),
-    legend.title = element_text(size = 8),
-    legend.text = element_text(size = 8),
-    legend.margin = margin(r=2),
-    legend.position = c(1.075, 0.55),
-    plot.margin = unit(c(0,3,0,0), 'cm')) + 
-  scale_fill_gradient(low = 'grey96', high = 'dodgerblue4')
-ggsave("Plots/alder_m.png", plot = plot_alder_m)
+    legend.position = c(0.785, 0.55)) + 
+  scale_fill_gradient(low = 'grey96', high = 'dodgerblue4') +
+  guides(fill = guide_colorbar(label.position = 'left'))
+#ggsave("Plots/alder_m.png", plot = plot_alder_m)
+#plot_alder_m
+
+plot_alder_m <- ggdraw(align_legend(plot_alder_m, hjust = 0.92))
+ggsave("Plots/alder_m2.png", plot = plot_alder_m)
 plot_alder_m
 ```
 
