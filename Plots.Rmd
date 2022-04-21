@@ -11,7 +11,46 @@ theme: readable
 library(tidyverse)
 library(statsDK)
 library(readxl)
+library(cowplot)
+library(ggsci)
+
+options(digits = 3)        # number of digits printed by R default (vectors, data.frames, lists)
+options(pillar.sigfig = 3) # number of digits printed by tibbles default.
+
+text_base_size   <- 8    # in pt
+fig.witdh        <- 180  # in mm
+fig.height       <- 125  # in mm
+
+# Set all text in plots to same size
+theme_set(theme_cowplot(font_size = 8, rel_small = 1, rel_tiny = 1, rel_large = 1))
+# Setting output sizes for plots
+knitr::opts_chunk$set(fig.width = fig.witdh/25.4)
+knitr::opts_chunk$set(fig.height = fig.height/25.4)
+knitr::opts_chunk$set(dpi = 108) # You need to find your minotors dpi yourself.
+
+# Setting text size inside plots (geom_text, geom_label etc.)
+ggplot_text_size <- text_base_size / ggplot2::.pt
+# Now use: geom_text(..., size = ggplot_text_size)
+
+# For saving plots!
+# Use: ggsave(plot1, filename="myplot.png", width = fig.witdh, height=fig.height, units = "mm")
+# Use: ggsave(plot1, filename="myplot.pdf", width = fig.witdh, height=fig.height, units = "mm")
+
+# Set locale if you want danish month names etc.
+Sys.setlocale(locale = "Danish_Denmark")  # For danish axes on plot
+#Sys.setlocale(locale = "English_Denmark") # For english axes on plot
+
+# Changing default ggplot colours
+# see ?scale_fill_continuous
+options(ggplot2.continuous.fill  = scale_fill_viridis_c)    
+options(ggplot2.discrete.fill    = list(ggsci::pal_locuszoom()(7)) )
+options(ggplot2.continuous.colour = scale_colour_viridis_c)
+options(ggplot2.discrete.colour   = list(ggsci::pal_locuszoom()(7)))
+
 ```
+
+
+
 
 
 
@@ -114,8 +153,6 @@ mutate_at(vars("A Landbrug, skovbrug og fiskeri":"X Uoplyst aktivitet"), funs(./
 ```{r}
 ford_branche<-ford %>% select(!"TOT Erhverv i alt") %>% pivot_longer(!OMRÅDE,names_to="Branche",values_to="Andel i branche")
 ```
-
-
 
 
 ```{r}
