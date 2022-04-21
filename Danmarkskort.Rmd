@@ -156,7 +156,7 @@ plot_dage <- ggplot(ggplotdata2$geometry, aes(fill = ggplotdata2$gns_dage_land))
   geom_sf() + 
   labs(fill = "Gennemsnitligt antal barselsdage - far\n") +
   theme(
-    legend.position = c(0.81, 0.55)) +
+    legend.position = c(0.82, 0.55)) +
   scale_fill_gradient(low = 'grey94', high = 'dodgerblue4') +
   guides(fill = guide_colorbar(label.position = 'left'))
   
@@ -206,16 +206,18 @@ plot_mk_land <- ggplot(ggplotdata2$geometry, aes(fill = ggplotdata2$Diff_køn_re
   geom_sf() +
   scale_fill_gradient2(low = 'firebrick1', mid = 'grey93', high = 'dodgerblue2',
                        limit = c(-3,3), 
-                       labels = c('-3   (Flest kvinder)', '-2', '-1', '0', '1', '2', '3   (Flest mænd')) +
-  labs(fill = "Antal mænd - antal kvinder,\nforskel i procent\n") +
+                       labels = c('(Flest kvinder)  -3', '-2', '-1', '0', '1', '2', '(Flest mænd)  3')) +
+  labs(fill = "Antal mænd - antal kvinder\n(forskel i procent)\n") +
   theme(
-    legend.position = c(0.97, 0.55)) 
-  #+ guides(fill = guide_colorbar(label.position = 'left'))
+    legend.position = c(0.845, 0.55),
+    legend.title.align = 1) +
+  guides(fill = guide_colorbar(label.position = 'left'))
+
 #plot_mk_land
 #ggsave("Plots/mk_land.png", plot = plot_mk_land)
 
 plot_mk_land <- ggdraw(align_legend(plot_mk_land, hjust = 0.85))
-ggsave("Plots/mk_land2.png", plot = plot_mk_land)
+#ggsave("Plots/mk_land2.png", plot = plot_mk_land)
 plot_mk_land
 ```
 ## Forskel i antal mænd og kvinder for kommuner
@@ -225,15 +227,17 @@ plot_mk_komm <- ggplot(ggplotdata_komm, aes(fill = Relativ_forskel_mk)) +
   geom_sf() +
   scale_fill_gradient2(low = 'firebrick1', mid = 'grey93', high = 'dodgerblue2',
                        limit = c(-5, 5), 
-                       labels = c('-5  (Flest kvinder)', '-2.5', '0', '2.5', '5  (Flest mænd)')) +
-  labs(fill = "Antal mænd - antal kvinder, \nforskel i procent\n") +
+                       labels = c('(Flest kvinder)  -5', '-2.5', '0', '2.5', '(Flest mænd)  5')) +
+  labs(fill = "Antal mænd - antal kvinder\n(forskel i procent)\n") +
   theme(
-    legend.position = c(0.97, 0.55))
+    legend.position = c(0.845, 0.55),
+    legend.title.align = 1) +
+  guides(fill = guide_colorbar(label.position = 'left'))
 #ggsave("Plots/mk_komm.png", plot = plot_mk_komm)
 #plot_mk_komm
 
 plot_mk_komm <- ggdraw(align_legend(plot_mk_komm, hjust = 0.85))
-ggsave("Plots/mk_komm2.png", plot = plot_mk_komm)
+#ggsave("Plots/mk_komm2.png", plot = plot_mk_komm)
 plot_mk_komm
 ```
 
@@ -350,7 +354,7 @@ Nedre 1/3
 ```{r}
 brancher_nedre <- read_excel("Data/brancher_beskæftigede_landsdele_nedre.xlsx")
 brancher_nedre <- brancher_nedre %>% mutate(Landsdel = str_remove_all(string = Landsdel, pattern = "Landsdel"),
-                                            Prop = Sum/Total_beskæftigede) %>% 
+                                            Prop = (Sum/Total_beskæftigede)*100) %>% 
   arrange(desc(Landsdel))
 brancher_nedre
 ```
@@ -360,7 +364,7 @@ Midte:
 ```{r}
 brancher_midte <- read_excel("Data/brancher_beskæftigede_landsdele_midte.xlsx")
 brancher_midte <- brancher_midte %>% mutate(Landsdel = str_remove_all(string = Landsdel, pattern = "Landsdel"),
-                                            Prop = Sum/Total_beskæftigede) %>% 
+                                            Prop = (Sum/Total_beskæftigede)*100) %>% 
   arrange(desc(Landsdel))
 brancher_midte
 ```
@@ -369,7 +373,7 @@ brancher_midte
 ```{r}
 brancher_top <- read_excel("Data/brancher_beskæftigede_landsdele_øvre.xlsx")
 brancher_top <- brancher_top %>% mutate(Landsdel = str_remove_all(string = Landsdel, pattern = "Landsdel"),
-                                            Prop = Sum/Total_beskæftigede) %>% 
+                                            Prop = (Sum/Total_beskæftigede)*100) %>% 
   arrange(desc(Landsdel))
 brancher_top
 ```
@@ -384,7 +388,7 @@ ggplotdata2
 ```{r}
 plot_brancher_nedre <- ggplot(ggplotdata2$geometry, aes(fill = ggplotdata2$prop_i_brancher_nedre)) +
   geom_sf() +
-  labs(fill = "Andel mænd i brancher med\nfærrest antal barselsdage\n") +
+  labs(fill = "Procent af mænd i brancher med\nfærrest antal barselsdage\n") +
   scale_fill_gradient(low = 'grey98', high = 'aquamarine4') +
   theme(
     legend.position = c(0.845, 0.55),
@@ -402,24 +406,24 @@ plot_brancher_nedre
 ```{r}
 plot_brancher_gns <- ggplot(ggplotdata2$geometry, aes(fill = ggplotdata2$prop_i_brancher_midte)) +
   geom_sf() +
-  labs(fill = "Andel mænd i brancher med\ngennemsnitligt antal barselsdage\n") + 
+  labs(fill = "Procent af mænd i brancher med\ngennemsnitligt antal barselsdage\n") + 
   scale_fill_gradient(low = 'grey98', high = 'aquamarine4') +
   theme(
-    legend.position = c(0.82, 0.55),
+    legend.position = c(0.84, 0.55),
     legend.title.align = 1) +
   guides(fill = guide_colorbar(label.position = 'left'))
 #ggsave("Plots/brancher_gns.png", plot = plot_brancher_gns)
 #plot_brancher_gns
 
 plot_brancher_gns <- ggdraw(align_legend(plot_brancher_gns, hjust = 0.95))
-ggsave("Plots/brancher_gns2.png", plot = plot_brancher_gns)
+#ggsave("Plots/brancher_gns2.png", plot = plot_brancher_gns)
 plot_brancher_gns
 ```
 
 ```{r}
 plot_brancher_øvre <- ggplot(ggplotdata2$geometry, aes(fill = ggplotdata2$prop_i_brancher_top)) +
   geom_sf() +
-  labs(fill = "Andel mænd i brancher med\nhøjt antal barselsdage\n") + 
+  labs(fill = "Procent af mænd i brancher med\nhøjt antal barselsdage\n") + 
   scale_fill_gradient(low = 'grey98', high = 'aquamarine4') +
   theme(
     legend.position = c(0.845, 0.55),
@@ -429,7 +433,7 @@ plot_brancher_øvre <- ggplot(ggplotdata2$geometry, aes(fill = ggplotdata2$prop_
 #plot_brancher_øvre
 
 plot_brancher_øvre <- ggdraw(align_legend(plot_brancher_øvre, hjust = 0.92))
-ggsave("Plots/brancher_øvre2.png", plot = plot_brancher_øvre)
+#ggsave("Plots/brancher_øvre2.png", plot = plot_brancher_øvre)
 plot_brancher_øvre
 ```
 
@@ -490,13 +494,13 @@ plot_alder_m <- ggplot(ggplotdata_komm, aes(fill = `Gennemsnitsalder for første
   labs(fill = 'Gennemsnitsalder førstegangsforælder - far\n') +
   theme(
     legend.position = c(0.785, 0.55)) + 
-  scale_fill_gradient(low = 'grey96', high = 'dodgerblue4') +
+  scale_fill_gradient(low = 'grey96', high = 'cornflowerblue') +
   guides(fill = guide_colorbar(label.position = 'left'))
 #ggsave("Plots/alder_m.png", plot = plot_alder_m)
 #plot_alder_m
 
 plot_alder_m <- ggdraw(align_legend(plot_alder_m, hjust = 0.92))
-ggsave("Plots/alder_m2.png", plot = plot_alder_m)
+#ggsave("Plots/alder_m2.png", plot = plot_alder_m)
 plot_alder_m
 ```
 
