@@ -108,7 +108,7 @@ barsel11_far
 barsel11_far <- barsel11_far %>% arrange(INDHOLD)
 
 
-barsel11_far %>% 
+plot_brancher <- barsel11_far %>% 
   ggplot(aes(x=BRANCHE, y=INDHOLD, col=TID)) +
   geom_point() +
   geom_hline(yintercept=c(20,30,40,50), color = "grey", size=0.1)+
@@ -141,6 +141,10 @@ barsel11_far %>%
         "6 Finansiering og forsikring"))+
   theme_classic()+
   theme(text = element_text(size = 8), legend.position = c(.2,.75), legend.background = element_rect(fill="white", size=0.5, linetype="solid", colour ="black"))
+
+plot_brancher
+
+ggsave("Plots/Brancher_Barsel_far.png", plot = plot_brancher)
 ```
 
 
