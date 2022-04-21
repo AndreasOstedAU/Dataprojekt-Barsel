@@ -144,7 +144,7 @@ plot_brancher <- barsel11_far %>%
 
 plot_brancher
 
-ggsave("Plots/Brancher_Barsel_far.png", plot = plot_brancher)
+ggsave("Plots/Brancher_Barsel_far.png", plot = plot_brancher, width = 10, height = 6)
 ```
 
 
