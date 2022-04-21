@@ -142,7 +142,7 @@ plot_barselsdage<-all %>%
   geom_hline(yintercept=c(20,30,40,50),color="grey",size=0.1)+
   theme(text = element_text(size = 8),legend.position = c(.2,.75), legend.background = element_rect(fill="white", size=0.5, linetype="solid", colour ="black"))
 
-ggsave("Plots/Barselsdage_Uddannelse.png", plot=plot_barselsdage)
+ggsave("Plots/Barselsdage_Uddannelse.png", plot=plot_barselsdage,width = 10, height = 6)
 
 ```
 
