@@ -78,9 +78,9 @@ pd <- df %>%
 pd <- pd %>% mutate(UDDKOMB=fct_inorder(UDDKOMB))
 
 
-pd %>% mutate(OMRÅDE=fct_relevel(OMRÅDE,"Landsdel Vestjylland","Landsdel Nordsjælland")) %>% 
+plotNordVestBarsel<-pd %>% mutate(OMRÅDE=fct_relevel(OMRÅDE,"Landsdel Vestjylland","Landsdel Nordsjælland")) %>% 
   filter(TID=="2019") %>% 
-  ggplot(aes(x=UDDKOMB, y=INDHOLD, fill=OMRÅDE)) +
+  ggplot(aes(x=UDDKOMB, y=INDHOLD, fill=OMRÅDE,width=0.8)) +
   geom_col(position = position_dodge2()) +
   scale_fill_manual(values=cbbPalette[c(3,8)])+
   ylab("Gns. #Barselsdage for fædre")+
@@ -93,10 +93,14 @@ pd %>% mutate(OMRÅDE=fct_relevel(OMRÅDE,"Landsdel Vestjylland","Landsdel Nords
       "Far har Mellemlang videregående uddannelse (MVU)" = "Mellemlang videregående",
       "Far har Lang videregående uddannelse (LVU)" = "Lang videregående"
     ))+
-  scale_fill_manual(values=c("skyblue2","palegreen2"),name="Landsdel")+
+  scale_fill_manual(values=c("palegreen2","skyblue2"),name="Landsdel")+
   theme_classic()+
+  guides(fill=guide_legend(reverse=TRUE))+
   theme(text = element_text(size = 8))+
   coord_flip()
+
+plotNordVestBarsel
+ggsave("Plots/plotNordVestBarsel.png", plot=plotNordVestBarsel)
 ```
 
 ```{r}
@@ -119,13 +123,13 @@ all <- all %>% mutate(UDDKOMB=fct_inorder(UDDKOMB))
 
 
 
-all %>% 
+plot_barselsdage<-all %>% 
   ggplot(aes(x=UDDKOMB, y=INDHOLD, col=TID)) +
   geom_point() +
   geom_line(aes(group=TID))+
   ylab("Gns. antal barselsdage for fædre")+
   xlab("Fars uddannelsesniveau")+
-  scale_x_discrete("Uddannelsesniveau",
+  scale_x_discrete("",
     labels = c(
       "Far har ingen ungdomsuddannelse" = "Ingen ungdomsuddannelse",
       "Far har ungdomsuddannelse." = "Ungdomsuddannelse",
@@ -136,7 +140,9 @@ all %>%
     ,guide = guide_axis(n.dodge = 2))+
   theme_classic()+
   geom_hline(yintercept=c(20,30,40,50),color="grey",size=0.1)+
-  theme(text = element_text(size = 8))
+  theme(text = element_text(size = 8),legend.position = c(.2,.75), legend.background = element_rect(fill="white", size=0.5, linetype="solid", colour ="black"))
+
+ggsave("Plots/Barselsdage_Uddannelse.png", plot=plot_barselsdage)
 
 ```
 
@@ -157,18 +163,21 @@ ford_branche<-ford %>% select(!"TOT Erhverv i alt") %>% pivot_longer(!OMRÅDE,na
 
 ```{r}
 
-ford_branche %>% filter(OMRÅDE %in% c("Landsdel Nordsjælland","Landsdel Vestjylland")) %>%  
+NordVestBrancher<-ford_branche %>% filter(OMRÅDE %in% c("Landsdel Vestjylland","Landsdel Nordsjælland")) %>%  
   mutate(OMRÅDE=fct_relevel(OMRÅDE,"Landsdel Vestjylland","Landsdel Nordsjælland")) %>% 
    mutate(Branche=fct_relevel(Branche,"CA Føde-, drikke- og tobaksvareindustri","A Landbrug, skovbrug og fiskeri","CK Maskinindustri","MA Rådgivning mv.","JC It- og informationstjenester","K Finansiering og forsikring","CI Elektronikindustri")) %>% 
   filter(Branche %in% c("MA Rådgivning mv.","K Finansiering og forsikring","JC It- og informationstjenester","CK Maskinindustri","CA Føde-, drikke- og tobaksvareindustri","A Landbrug, skovbrug og fiskeri","CI Elektronikindustri")) %>% 
-  ggplot(aes(x=Branche, y=`Andel i branche`, fill=OMRÅDE)) +
-  geom_col(position = position_dodge(),width = 0.8) +
-  scale_fill_manual(values=c("skyblue2","palegreen2"),name="Landsdel")+
-  ylab("Andel")+
+  ggplot(aes(x=Branche, y=`Andel i branche`*100, fill=OMRÅDE)) +
+  geom_col(position = position_dodge2(),width = 0.8) +
+  scale_fill_manual(values=c("palegreen2","skyblue2"),labels=c("Landsdel Vestjylland","Landsdel Nordsjælland"),name="Landsdel")+
+  ylab("Procent")+
   xlab("Brancher")+
   theme_classic()+
+  guides(fill=guide_legend(reverse=TRUE))+
   theme(text = element_text(size = 8))+
   coord_flip()
+
+ggsave("Plots/NordVestBrancher.png", plot=NordVestBrancher)
 ```
 
 
@@ -195,15 +204,14 @@ udd_pivot <- udd_landsdele_prop_2019  %>% rename(Uoplyst=ProportionUoplyst, Ungd
 
 udd_pivot <- udd_pivot %>% mutate(Uddannelse=fct_inorder(Uddannelse))
 
-udd_pivot %>% filter(Landsdel %in% c("Landsdel Nordsjælland","Landsdel Vestjylland")) %>%  
+PlotNordVestUdd<-udd_pivot %>% filter(Landsdel %in% c("Landsdel Vestjylland","Landsdel Nordsjælland")) %>%  
   mutate(Landsdel=fct_relevel(Landsdel,"Landsdel Vestjylland","Landsdel Nordsjælland")) %>% 
   filter(Uddannelse!="Uoplyst") %>% 
-  ggplot(aes(x=Uddannelse, y=Proportion, fill=Landsdel)) +
-  geom_col(position = position_dodge(),width = 0.8) +
-  scale_fill_manual(values=c("skyblue2","palegreen2"))+
-  ylab("Andel")+
-  xlab("Uddannelse")+
-  scale_x_discrete("Uddannelsesniveau",
+  ggplot(aes(x=Uddannelse, y=Proportion*100, fill=Landsdel)) +
+  geom_col(position = position_dodge2(),width = 0.8) +
+  scale_fill_manual(values=c("palegreen2","skyblue2"))+
+  ylab("Procent")+
+  scale_x_discrete("",
     labels = c(
       "Ingen" = "Ingen ungdomsuddannelse",
       "Ungdomsuddannelse." = "Ungdomsuddannelse",
@@ -212,13 +220,18 @@ udd_pivot %>% filter(Landsdel %in% c("Landsdel Nordsjælland","Landsdel Vestjyll
       "Lang" = "Lang videregående"
     ))+
   theme_classic()+
+   guides(fill=guide_legend(reverse=TRUE))+
   theme(text = element_text(size = 8))+
   coord_flip()
+
+ggsave("Plots/PlotNordVestUdd.png", plot=PlotNordVestUdd)
 ```
 
 Taget fra IFOR22 (Christiansø mangler, men er undtaget fra gennemsnittet, da det alligevel er en meget lille kommune)
 ```{r}
 deciler_kommuner <- read_excel("Data/deciler_kommuner_2019.xlsx")
+
+kommune_landsdel<- read_excel("Data/kommuner_landsdele.xlsx")
 
 kommune_landsdel_udenchristian <- kommune_landsdel %>% filter(Kommune!='Christiansø')
 
@@ -268,17 +281,18 @@ deciler_landsdel_2019_helelandet
 ```
 
 ```{r}
-deciler_landsdel_2019_nordvest%>% mutate(Landsdel=fct_relevel(Landsdel,"Landsdel Nordsjælland","Landsdel Vestjylland")) %>% 
+deciler_landsdel_2019_nordvest%>% mutate(Landsdel=fct_relevel(Landsdel,"Landsdel Vestjylland","Landsdel Nordsjælland")) %>% 
   filter(Landsdel %in% c("Landsdel Nordsjælland","Landsdel Vestjylland")) %>% 
   ggplot(aes(x=Landsdel, y=ulighed, fill=Landsdel)) +
   geom_col(position = position_dodge2()) +
   scale_fill_manual(values=cbbPalette[c(3,8)])+
   ylab("Ulighed")+
   xlab("Landsdel")+
-  scale_fill_manual(values=c("skyblue2","palegreen2"),name="Landsdel")+
+  scale_fill_manual(values=c("palegreen2","skyblue2"),name="Landsdel")+
   theme_classic()+
   geom_hline(aes(yintercept=3.212436),color="red")+
   theme(text = element_text(size = 8))+
+  guides(fill=guide_legend(reverse=TRUE))+
   coord_flip()
 ```
 
