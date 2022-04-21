@@ -140,7 +140,7 @@ barsel11_far %>%
         "9 Offentlig administration, undervisning og sundhed",
         "6 Finansiering og forsikring"))+
   theme_classic()+
-  theme(text = element_text(size = 8))
+  theme(text = element_text(size = 8), legend.position = c(.2,.75), legend.background = element_rect(fill="white", size=0.5, linetype="solid", colour ="black"))
 ```
 
 
