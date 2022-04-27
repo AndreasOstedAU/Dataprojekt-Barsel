@@ -40,6 +40,16 @@ summary(LM_interaction_far)
 LM_no_interaction_far <- lm(data = barsel04_far, INDHOLD ~ UDDKOMB + OMRÅDE + TID)
 summary(LM_no_interaction_far)
 
+
+s <- lm(data = barsel04_far, INDHOLD ~ UDDKOMB + TID)
+summary(s) 
+
+
+broom::augment(s) %>% bind_cols(barsel04_far)
+
+
+broom::glance(s)
+
 #test for reduktion til model uden interaktion:
 anova(LM_interaction_far, LM_no_interaction_far)
 ```
