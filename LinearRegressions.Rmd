@@ -58,17 +58,17 @@ anova(LM_interaction_far, LM_no_interaction_far)
 ## Modeller af stigende kompleksitet
 
 ```{r}
-model0 <- lm(data = barsel04_far, INDHOLD ~ 1) %>% augment()
+model0 <- lm(data = barsel04_far, INDHOLD ~ TID) %>% augment()
 
 model1 <- lm(data = barsel04_far, INDHOLD ~ OMRÅDE) %>% augment()
 
 model2 <- lm(data = barsel04_far, INDHOLD ~ UDDKOMB) %>% augment()
 
-model3 <- lm(data = barsel04_far, INDHOLD ~ UDDKOMB + OMRÅDE) %>% augment()
+model3 <- lm(data = barsel04_far, INDHOLD ~ UDDKOMB + OMRÅDE + TID) %>% augment()
 
-model4 <- lm(data = barsel04_far, INDHOLD ~ UDDKOMB + OMRÅDE + OMRÅDE*UDDKOMB) %>% augment()
+model4 <- lm(data = barsel04_far, INDHOLD ~ UDDKOMB + OMRÅDE + TID + OMRÅDE*UDDKOMB) %>% augment()
 
-model5 <- lm(data = barsel04_far, INDHOLD ~ UDDKOMB + OMRÅDE + TID + OMRÅDE*UDDKOMB) %>% augment()
+model5 <- lm(data = barsel04_far, INDHOLD ~ UDDKOMB * OMRÅDE*TID) %>% augment()
 
 barsel04_models <- barsel04_far %>% mutate(Model0 = model0$.fitted,
                                            Model1 = model1$.fitted,
@@ -79,21 +79,39 @@ barsel04_models <- barsel04_far %>% mutate(Model0 = model0$.fitted,
 barsel04_models %>% filter(TID == 4)
 ```
 
+Test af signifikans for sidste model:
+```{r}
+anova(lm(data = barsel04_far, INDHOLD ~ UDDKOMB * OMRÅDE*TID), lm(data = barsel04_far, INDHOLD ~ UDDKOMB + OMRÅDE + TID + OMRÅDE*UDDKOMB))
+```
+Den sidste model er ikke signifikant. 
+
 ## Plots
 ```{r}
 barsel04_models %>% filter(OMRÅDE %in% c("Landsdel Vestjylland", "Landsdel Fyn", "Landsdel Nordsjælland")) %>%  pivot_longer(c("Model0", "Model1", "Model2", "Model3", "Model4", "Model5"), names_to = 'Model', values_to = 'Fitted') %>% filter(TID == 4) %>% #Kun år 2019
   
   ggplot(mapping = aes(x = UDDKOMB, y = INDHOLD)) +
-  geom_bar(stat = 'identity', position = 'dodge', fill = 'grey50', color = 'black', width = 0.7) +
+  geom_bar(stat = 'identity', position = 'dodge', fill = 'grey95', color = 'black', width = 0.7) +
   geom_point(aes(y = Fitted, color = Model), size = 2, shape = 15) +
+  geom_line(aes(y = Fitted, group = Model), linetype = 2, alpha = 0.4) +
   theme_classic(base_size = 8) +
-  scale_x_discrete(labels = c('Ingen ungdomsudd.', 'Ungdomsudd.', 'KVU', 'MVU', 'LVU')) +
+  #scale_x_discrete(labels = c('Ingen ungdomsudd.', 'Ungdomsudd.', 'KVU', 'MVU', 'LVU')) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1),
         legend.background = element_rect(fill="white", size=0.5, linetype="solid", colour ="black")) +
   xlab('Uddannelsesniveau') + ylab('Gennemsnitligt antal barselsdage') +
   facet_wrap(~OMRÅDE) 
-```
 
+barsel04_models %>% 
+  pivot_longer(c("Model0", "Model1", "Model2", "Model3", "Model4", "Model5"), names_to = 'Model', values_to = 'Fitted')  %>% 
+  ggplot(mapping = aes(x = INDHOLD, y = Fitted, color=Model)) +
+  geom_point() +
+  geom_abline(slope=1, linetype="dashed")+
+  theme_classic(base_size = 8) +
+  #scale_x_discrete(labels = c('Ingen ungdomsudd.', 'Ungdomsudd.', 'KVU', 'MVU', 'LVU')) +
+  theme(legend.background = element_rect(fill="white", size=0.5, linetype="solid", colour ="black")) +
+  xlab('Observeret') + ylab('Predikteret') +
+  facet_wrap(~Model) 
+```
+Lav adjusted R^2 på hvor model.
 
 ## Far model med uddannelsesscore
 ```{r}
