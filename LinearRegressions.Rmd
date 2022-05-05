@@ -93,6 +93,11 @@ anova(lm(data = barsel04_far, INDHOLD ~ UDDKOMB * OMRÅDE*TID), lm(data = barsel
 ```
 Den sidste model er ikke signifikant. 
 
+Colormap:
+```{r}
+farver <- c('firebrick2', 'orange', 'chartreuse3', 'dodgerblue1', 'darkorchid', 'grey75')
+```
+
 ## Plots
 ```{r}
 # barsel04_models %>% filter(OMRÅDE %in% c("Landsdel Vestjylland", "Landsdel Fyn", "Landsdel Nordsjælland")) %>%  pivot_longer(c("Model0", "Model1", "Model2", "Model3", "Model4", "Model5"), names_to = 'Model', values_to = 'Fitted') %>% filter(TID == 4) %>%   #Kun år 2019
@@ -114,13 +119,15 @@ plot_models <- ggplot(data = barsel04_models_long, mapping = aes(x = INDHOLD, y 
   geom_point() +
   geom_abline(slope=1, linetype="dashed")+
   theme_classic(base_size = 8) +
-  #scale_x_discrete(labels = c('Ingen ungdomsudd.', 'Ungdomsudd.', 'KVU', 'MVU', 'LVU')) +
-  theme(legend.background = element_rect(fill="white", size=0.5, linetype="solid", colour ="black")) +
+  theme(#legend.background = element_rect(fill="white", size=0.5, linetype="solid", colour ="black")
+    legend.position = 'none') +
+  scale_color_manual(values = farver) +
   xlab('Observeret') + ylab('Predikteret') +
   facet_wrap(~Model) +
-  geom_text(x = Inf, y = 15, aes(label = label), data = r2, inherit.aes = FALSE, size = 2, hjust = 1, vjust = 0) +
+  geom_text(x = 67.5, y = 15, aes(label = label), data = r2, inherit.aes = FALSE, size = 2.3, hjust = 1, vjust = 0) +
   theme(panel.spacing = unit(0.5, 'lines'))
 plot_models 
+#ggsave("Plots/modeller_plot.png", plot = plot_models)
 ```
 
 
