@@ -77,7 +77,15 @@ barsel04_models <- barsel04_far %>% mutate(Model0 = model0$.fitted,
                                            Model4 = model4$.fitted,
                                            Model5 = model5$.fitted)
 barsel04_models %>% filter(TID == 4)
+summary(lm(data = barsel04_far, INDHOLD ~ UDDKOMB * OMRÅDE*TID))
 ```
+
+```{r}
+r2 <- data.frame(label = c('R-squared: -0.0004787', 'R-squared: 0.08585', 'R-squared: 0.7013', 'R-squared: 0.8181', 'R-squared: 0.8782', 'R-squared: 0.8785'), 
+                 Model = c('Model0', 'Model1', 'Model2', 'Model3', 'Model4', 'Model5'))
+r2
+```
+
 
 Test af signifikans for sidste model:
 ```{r}
@@ -87,31 +95,34 @@ Den sidste model er ikke signifikant.
 
 ## Plots
 ```{r}
-barsel04_models %>% filter(OMRÅDE %in% c("Landsdel Vestjylland", "Landsdel Fyn", "Landsdel Nordsjælland")) %>%  pivot_longer(c("Model0", "Model1", "Model2", "Model3", "Model4", "Model5"), names_to = 'Model', values_to = 'Fitted') %>% filter(TID == 4) %>% #Kun år 2019
-  
-  ggplot(mapping = aes(x = UDDKOMB, y = INDHOLD)) +
-  geom_bar(stat = 'identity', position = 'dodge', fill = 'grey95', color = 'black', width = 0.7) +
-  geom_point(aes(y = Fitted, color = Model), size = 2, shape = 15) +
-  geom_line(aes(y = Fitted, group = Model), linetype = 2, alpha = 0.4) +
-  theme_classic(base_size = 8) +
-  #scale_x_discrete(labels = c('Ingen ungdomsudd.', 'Ungdomsudd.', 'KVU', 'MVU', 'LVU')) +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1),
-        legend.background = element_rect(fill="white", size=0.5, linetype="solid", colour ="black")) +
-  xlab('Uddannelsesniveau') + ylab('Gennemsnitligt antal barselsdage') +
-  facet_wrap(~OMRÅDE) 
+# barsel04_models %>% filter(OMRÅDE %in% c("Landsdel Vestjylland", "Landsdel Fyn", "Landsdel Nordsjælland")) %>%  pivot_longer(c("Model0", "Model1", "Model2", "Model3", "Model4", "Model5"), names_to = 'Model', values_to = 'Fitted') %>% filter(TID == 4) %>%   #Kun år 2019
+  # ggplot(mapping = aes(x = UDDKOMB, y = INDHOLD)) +
+  # geom_bar(stat = 'identity', position = 'dodge', fill = 'grey95', color = 'black', width = 0.7) +
+  # geom_point(aes(y = Fitted, color = Model), size = 2, shape = 15) +
+  # geom_line(aes(y = Fitted, group = Model), linetype = 2, alpha = 0.4) +
+  # theme_classic(base_size = 8) +
+  # #scale_x_discrete(labels = c('Ingen ungdomsudd.', 'Ungdomsudd.', 'KVU', 'MVU', 'LVU')) +
+  # theme(axis.text.x = element_text(angle = 45, hjust = 1),
+  #       legend.background = element_rect(fill="white", size=0.5, linetype="solid", colour ="black")) +
+  # xlab('Uddannelsesniveau') + ylab('Gennemsnitligt antal barselsdage') +
+  # facet_wrap(~OMRÅDE) 
 
-barsel04_models %>% 
-  pivot_longer(c("Model0", "Model1", "Model2", "Model3", "Model4", "Model5"), names_to = 'Model', values_to = 'Fitted')  %>% 
-  ggplot(mapping = aes(x = INDHOLD, y = Fitted, color=Model)) +
+barsel04_models_long <- barsel04_models %>% 
+  pivot_longer(c("Model0", "Model1", "Model2", "Model3", "Model4", "Model5"), names_to = 'Model', values_to = 'Fitted')
+
+plot_models <- ggplot(data = barsel04_models_long, mapping = aes(x = INDHOLD, y = Fitted, color=Model)) +
   geom_point() +
   geom_abline(slope=1, linetype="dashed")+
   theme_classic(base_size = 8) +
   #scale_x_discrete(labels = c('Ingen ungdomsudd.', 'Ungdomsudd.', 'KVU', 'MVU', 'LVU')) +
   theme(legend.background = element_rect(fill="white", size=0.5, linetype="solid", colour ="black")) +
   xlab('Observeret') + ylab('Predikteret') +
-  facet_wrap(~Model) 
+  facet_wrap(~Model) +
+  geom_text(x = Inf, y = 15, aes(label = label), data = r2, inherit.aes = FALSE, size = 2, hjust = 1, vjust = 0) +
+  theme(panel.spacing = unit(0.5, 'lines'))
+plot_models 
 ```
-Lav adjusted R^2 på hvor model.
+
 
 ## Far model med uddannelsesscore
 ```{r}
