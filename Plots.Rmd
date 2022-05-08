@@ -162,18 +162,18 @@ ford_branche<-ford %>% select(!"TOT Erhverv i alt") %>% pivot_longer(!OMRÅDE,na
 
 
 ```{r}
+NordVestBrancherData<-ford_branche %>% filter(OMRÅDE %in% c("Landsdel Vestjylland","Landsdel Nordsjælland"))
+NordVestBrancherData$OMRÅDE<- factor(NordVestBrancherData$OMRÅDE,levels=c("Landsdel Vestjylland","Landsdel Nordsjælland"))
+NordVestBrancherData<-NordVestBrancherData %>% mutate(Branche=fct_relevel(Branche,"CA Føde-, drikke- og tobaksvareindustri","A Landbrug, skovbrug og fiskeri","CK Maskinindustri","MA Rådgivning mv.","JC It- og informationstjenester","K Finansiering og forsikring","CI Elektronikindustri")) %>% 
+  filter(Branche %in% c("MA Rådgivning mv.","K Finansiering og forsikring","JC It- og informationstjenester","CK Maskinindustri","CA Føde-, drikke- og tobaksvareindustri","A Landbrug, skovbrug og fiskeri","CI Elektronikindustri"))
 
-NordVestBrancher<-ford_branche %>% filter(OMRÅDE %in% c("Landsdel Vestjylland","Landsdel Nordsjælland")) %>%  
-  mutate(OMRÅDE=fct_relevel(OMRÅDE,"Landsdel Vestjylland","Landsdel Nordsjælland")) %>% 
-   mutate(Branche=fct_relevel(Branche,"CA Føde-, drikke- og tobaksvareindustri","A Landbrug, skovbrug og fiskeri","CK Maskinindustri","MA Rådgivning mv.","JC It- og informationstjenester","K Finansiering og forsikring","CI Elektronikindustri")) %>% 
-  filter(Branche %in% c("MA Rådgivning mv.","K Finansiering og forsikring","JC It- og informationstjenester","CK Maskinindustri","CA Føde-, drikke- og tobaksvareindustri","A Landbrug, skovbrug og fiskeri","CI Elektronikindustri")) %>% 
-  ggplot(aes(x=Branche, y=`Andel i branche`*100, fill=OMRÅDE)) +
+
+NordVestBrancher<-NordVestBrancherData %>% ggplot(aes(x=Branche, y=`Andel i branche`*100, fill=OMRÅDE)) +
   geom_col(position = position_dodge2(),width = 0.8) +
-  scale_fill_manual(values=c("palegreen2","skyblue2"),labels=c("Landsdel Vestjylland","Landsdel Nordsjælland"),name="Landsdel")+
+  scale_fill_manual(values=c("palegreen2","skyblue2"),labels=c("Landsdel Vestjylland","Landsdel Nordsjælland"),name="Landsdel", guide=guide_legend(reverse=T))+
   ylab("Procent")+
   xlab("Brancher")+
   theme_classic()+
-  guides(fill=guide_legend(reverse=TRUE))+
   theme(text = element_text(size = 8))+
   coord_flip()
 
