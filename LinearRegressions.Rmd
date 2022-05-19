@@ -80,8 +80,14 @@ barsel04_models %>% filter(TID == 4)
 summary(lm(data = barsel04_far, INDHOLD ~ UDDKOMB * OMRÅDE*TID))
 ```
 
+Test af reduktion til model med interaktion, men uden tid:
 ```{r}
-r2 <- data.frame(label = c('R-squared: -0.0004787', 'R-squared: 0.08585', 'R-squared: 0.7013', 'R-squared: 0.8181', 'R-squared: 0.8782', 'R-squared: 0.8785'), 
+anova(lm(data = barsel04_far, INDHOLD ~ UDDKOMB + OMRÅDE + TID + OMRÅDE*UDDKOMB),lm(data = barsel04_far, INDHOLD ~ UDDKOMB + OMRÅDE  + OMRÅDE*UDDKOMB))
+```
+
+Labels til modeller:
+```{r}
+r2 <- data.frame(label = c('R-squared: ~ 0', 'R-squared: 0.08585', 'R-squared: 0.7013', 'R-squared: 0.8181', 'R-squared: 0.8782', 'R-squared: 0.8785'), 
                  Model = c('Model0', 'Model1', 'Model2', 'Model3', 'Model4', 'Model5'))
 r2
 ```
@@ -96,6 +102,8 @@ Den sidste model er ikke signifikant.
 Colormap:
 ```{r}
 farver <- c('firebrick2', 'orange', 'chartreuse3', 'dodgerblue1', 'darkorchid', 'grey75')
+
+names = c(Model0 = 'Model 1', Model1 = 'Model 2', Model2 = 'Model 3', Model3 = 'Model 4', Model4 = 'Model 5', Model5 = 'Model 6')
 ```
 
 ## Plots
@@ -123,23 +131,25 @@ plot_models <- ggplot(data = barsel04_models_long, mapping = aes(x = INDHOLD, y 
     legend.position = 'none') +
   scale_color_manual(values = farver) +
   xlab('Observeret') + ylab('Predikteret') +
-  facet_wrap(~Model) +
+  facet_wrap(~Model, labeller = as_labeller(names)) +
   geom_text(x = 67.5, y = 15, aes(label = label), data = r2, inherit.aes = FALSE, size = 2.3, hjust = 1, vjust = 0) +
   theme(panel.spacing = unit(0.5, 'lines'))
 plot_models 
-#ggsave("Plots/modeller_plot.png", plot = plot_models)
+ggsave("Plots/modeller_plot.png", plot = plot_models, dpi = 300, width = 180, height = 120, units = 'mm')
 ```
 
 
 ## Far model med uddannelsesscore
 ```{r}
-barsel04_far_2019 <- barsel04_far %>% filter(TID == 2019)
+barsel04_far_2019 <- barsel04_far %>% filter(TID == 4)
 udd_gns_2019 <- read_rds("Data/udd_gns_2019.rds")
 barsel04_far_2019_udd_gns <- left_join(barsel04_far_2019, udd_gns_2019, by = c("OMRÅDE" = "Landsdel")) 
 barsel04_far_2019_udd_gns
 
 lm_gns <- lm(data = barsel04_far_2019_udd_gns, INDHOLD ~ UDDKOMB + gns)
 summary(lm_gns)
+
+barsel04_far
 ```
 
 
